@@ -12,8 +12,6 @@ import { HttpService } from '@nestjs/axios';
 import { IntelligenceService } from '@backend/citizen-assistance/intelligence.service';
 import { throwError } from 'rxjs';
 
-const DEBUG_PROFILE_FLOW = process.env.DEBUG_PROFILE_FLOW === 'true';
-
 describe('Profile Confirmation & Citizen Identification State Machine Test', () => {
   let chatService: ChatService;
   let prisma: PrismaService;
@@ -48,12 +46,6 @@ describe('Profile Confirmation & Citizen Identification State Machine Test', () 
       intelligence
     );
   });
-
-  const debugLog = (step: string, message: string, nextStep: string, citizen: any) => {
-    if (DEBUG_PROFILE_FLOW) {
-      console.log({ step, message, nextStep, citizen });
-    }
-  };
 
   afterAll(async () => {
     await prisma.$disconnect();
@@ -145,7 +137,7 @@ describe('Profile Confirmation & Citizen Identification State Machine Test', () 
     const sess = `test-sess-change-loc-${Date.now()}`;
     await chatService.sendMessage("File Complaint", sess);
     await chatService.sendMessage("Manoj Tiwari", sess);
-    await chatService.sendMessage("7878787878", sess);
+    await chatService.sendMessage("7878787878", sess); // Moves to IDENTIFY_LOCATION
     await chatService.sendMessage("Ayodhya", sess); // Moves to CONFIRM_LOCATION
     
     const res = await chatService.sendMessage("Change Location", sess);
@@ -209,5 +201,50 @@ describe('Profile Confirmation & Citizen Identification State Machine Test', () 
     expect(state.citizen.city).toContain("Ayodhya");
     expect(state.citizen.addressLine1).toContain("Civil Lines");
     expect(state.citizen.isConfirmed).toBe(true);
+  });
+
+  it('Test Scenario 11: Geolocation Smart Flow', async () => {
+    const sess = `test-sess-smart-geo-${Date.now()}`;
+    await chatService.sendMessage("File Complaint", sess);
+    await chatService.sendMessage("Manoj Tiwari", sess);
+    
+    // Inject browser geolocation coords
+    const state = await chatService.getOrCreateSession(sess);
+    state.citizen.latitude = 26.8467;
+    state.citizen.longitude = 80.9462;
+    await chatService.saveSession(sess, state);
+
+    // Provide mobile number -> triggers auto-location
+    const res = await chatService.sendMessage("7878787878", sess);
+    expect(res._debug.step).toBe("CONFIRM_LOCATION_SMART");
+    expect(res.response).toContain("Lucknow");
+
+    // Confirm location
+    const res2 = await chatService.sendMessage("Confirm", sess);
+    expect(res2._debug.step).toBe("CONFIRM_ADDRESS_SMART");
+
+    // Confirm address
+    const res3 = await chatService.sendMessage("Confirm", sess);
+    expect(res3._debug.step).toBe("CONFIRM_PROFILE");
+  });
+
+  it('Test Scenario 12: Single Field Modification Flow', async () => {
+    const sess = `test-sess-smart-mod-${Date.now()}`;
+    await chatService.sendMessage("File Complaint", sess);
+    await chatService.sendMessage("Manoj Tiwari", sess);
+    await chatService.sendMessage("7878787878", sess);
+    await chatService.sendMessage("Ayodhya", sess);
+    await chatService.sendMessage("Confirm", sess);
+    await chatService.sendMessage("House No 22 Civil Lines Ayodhya", sess);
+    
+    // Modify Name
+    await chatService.sendMessage("Modify Details", sess);
+    await chatService.sendMessage("1", sess); // Select Name
+    const res = await chatService.sendMessage("Mohan Singh", sess);
+    expect(res.response).toContain("✅ Name updated successfully");
+    expect(res._debug.step).toBe("CONFIRM_PROFILE");
+    
+    const state = await chatService.getOrCreateSession(sess);
+    expect(state.citizen.fullName).toBe("Mohan Singh");
   });
 });
