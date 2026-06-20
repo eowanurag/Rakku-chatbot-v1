@@ -158,13 +158,36 @@ function ChatContent() {
 
   const formatStationMessage = (data: any, source: string): string => {
     const demoTag = data.demoMode ? '\n⚠️ *(Demo Mode — data may not be real)*' : '';
+    
+    let phoneLine = '';
+    if (data.station?.phone && data.station.phone.toString().trim().toLowerCase() !== 'null' && data.station.phone.toString().trim() !== '') {
+      phoneLine = `- **Phone Number:** [${data.station.phone}](tel:${data.station.phone})\n`;
+    }
+
+    let distanceLine = '';
+    if (data.distanceKm) {
+      const distStr = data.distanceKm.toString();
+      const isNumeric = !isNaN(parseFloat(distStr)) && isFinite(Number(distStr));
+      if (isNumeric && parseFloat(distStr) > 0) {
+        distanceLine = `- **Distance:** **${distStr} km** away\n`;
+      } else if (!isNumeric && !distStr.toLowerCase().includes('unknown') && !distStr.toLowerCase().includes('unavailable')) {
+        distanceLine = `- **Distance:** ${distStr}\n`;
+      }
+    }
+
+    let mapsLine = '';
+    if (data.mapsUrl && data.mapsUrl.toString().trim() !== '') {
+      mapsLine = `👉 [Open in Google Maps](${data.mapsUrl})`;
+    }
+
     return (
       `🚔 **Nearest Police Station Found** *(${source})*:\n\n` +
-      `- **Name:** **${data.station.name}**\n` +
-      `- **Address:** ${data.station.address}\n` +
-      `- **Phone Number:** [${data.station.phone}](tel:${data.station.phone})\n` +
-      `- **Distance:** **${data.distanceKm} km** away\n\n` +
-      `👉 [Open in Google Maps](${data.mapsUrl})${demoTag}`
+      `- **Name:** **${data.station?.name}**\n` +
+      `- **Address:** ${data.station?.address}\n` +
+      phoneLine +
+      distanceLine +
+      (mapsLine ? `\n${mapsLine}` : '') +
+      demoTag
     );
   };
 
@@ -227,6 +250,25 @@ function ChatContent() {
         }
       );
     }
+  }, []);
+
+  // Handle responsive sidebar open/close based on viewport width
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setSidebarOpen(false);
+      } else {
+        setSidebarOpen(true);
+      }
+    };
+
+    // Initialize based on current width
+    handleResize();
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   // Welcome experience check from sessionStorage

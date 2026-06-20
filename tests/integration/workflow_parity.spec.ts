@@ -205,6 +205,7 @@ describe('Workflow Parity & Integration Validation', () => {
       "Confirm",
       "House No 22 Civil Lines",
       "Confirm Details",
+      "Character Certificate",
       "Apply For Someone Else", // PRP Selection
       "Manoj Tiwari",
       "House No 22",

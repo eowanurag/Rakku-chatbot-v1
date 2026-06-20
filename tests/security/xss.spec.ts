@@ -9,6 +9,17 @@ describe('Cross-Site Scripting (XSS) Mitigation Spec', () => {
     prisma = new PrismaService();
     await prisma.$connect();
     complaintService = new ComplaintService(prisma);
+
+    // Clean up any existing fingerprints for our test payloads to avoid test leakage
+    const fingerprintService = (complaintService as any).fingerprintService;
+    if (fingerprintService) {
+      const defaultCitizen = await prisma.citizen.findFirst();
+      const citizenId = defaultCitizen ? defaultCitizen.id : 'mock-default-citizen-id';
+      for (const payload of xssPayloads) {
+        const fp = fingerprintService.generateFingerprint(citizenId, 'Complaint', { type: 'Cyber Crime', details: payload });
+        await prisma.submissionFingerprint.deleteMany({ where: { fingerprint: fp } });
+      }
+    }
   });
 
   afterAll(async () => {
@@ -32,9 +43,18 @@ describe('Cross-Site Scripting (XSS) Mitigation Spec', () => {
       });
       expect(retrieved?.incidentDetails).toBe(payload);
 
+      // Clean up complaint
       await prisma.complaint.delete({
         where: { referenceNumber: res.referenceNumber }
       });
+
+      // Clean up fingerprint to avoid duplicate submission blocks on successive runs
+      const fingerprintService = (complaintService as any).fingerprintService;
+      if (fingerprintService) {
+        const citizenId = retrieved?.citizenId || 'default-citizen-id';
+        const fp = fingerprintService.generateFingerprint(citizenId, 'Complaint', { type: 'Cyber Crime', details: payload });
+        await prisma.submissionFingerprint.deleteMany({ where: { fingerprint: fp } });
+      }
     });
   });
 });

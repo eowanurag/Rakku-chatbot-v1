@@ -215,12 +215,33 @@ export class LocationResolverService {
       resolvedLocality = 'BANKI';
     }
 
+    let districtCode = finalDistrictCode;
+    let confidence = finalConfidence;
+    let matchType = finalMatchType;
+
+    // Explicit override if district is Lucknow but city/locality points elsewhere
+    if (districtCode === 'LUCKNOW') {
+      if (resolvedCity === 'NOIDA') {
+        districtCode = 'GAUTAM_BUDDHA_NAGAR';
+      } else if (resolvedCity === 'BANKI') {
+        districtCode = 'BARABANKI';
+      } else if (resolvedCity === 'PRAYAGRAJ' || resolvedCity === 'ALLAHABAD') {
+        districtCode = 'PRAYAGRAJ';
+      } else if (resolvedCity === 'VARANASI' || resolvedCity === 'BENARES') {
+        districtCode = 'VARANASI';
+      } else if (resolvedCity === 'KANPUR') {
+        districtCode = 'KANPUR_NAGAR';
+      } else if (resolvedCity === 'GHAZIABAD') {
+        districtCode = 'GHAZIABAD';
+      }
+    }
+
     return {
-      districtCode: finalDistrictCode,
+      districtCode,
       cityCode: resolvedCity,
       localityCode: resolvedLocality,
-      confidence: finalConfidence,
-      matchType: finalMatchType,
+      confidence,
+      matchType,
     };
   }
 }
