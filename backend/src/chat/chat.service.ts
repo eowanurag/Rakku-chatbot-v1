@@ -83,6 +83,7 @@ export class ChatService {
   private readonly jurisdictionService: JurisdictionService;
   private readonly jurisdictionLifecycleService: JurisdictionLifecycleService;
   private readonly routingTargetRegistryService: RoutingTargetRegistryService;
+  private readonly locationResolver = new LocationResolverService();
 
   constructor(
     private readonly httpService: HttpService,
@@ -1559,7 +1560,9 @@ export class ChatService {
           } else {
             state.step = 'IDENTIFY_LOCATION';
             return {
-              response: "Could you please tell me your city, district, or area?",
+              response: state.language === 'hi' ? "❌ मैं स्वचालित रूप से आपका वर्तमान स्थान निर्धारित करने में असमर्थ हूँ।\n\nकृपया अपना शहर, ज़िला या क्षेत्र मैन्युअल रूप से दर्ज करें।" :
+                        state.language === 'hinglish' ? "❌ Hum aapka current location automatically detect nahi kar paye.\n\nPlease apna city, district ya area manually enter karein." :
+                        "❌ Unable to determine your current location automatically.\n\nPlease enter your city, district, or area manually.",
               suggestions: [],
             };
           }
@@ -1877,12 +1880,37 @@ export class ChatService {
           const ext = this.validationService.extractCitizenData(message);
           const loc = ext.location || message.trim();
           if (loc.length >= 3) {
-            state.citizen.city = loc;
-            state.citizen.district = loc;
-            successPrefix = state.language === 'hi' ? `✅ स्थान सफलतापूर्वक अपडेट किया गया।\n\nकृपया अपने विवरण की फिर से समीक्षा करें:\n\n` :
-                            state.language === 'hinglish' ? `✅ Location successfully update ho gaya hai.\n\nPlease details fir se review karein:\n\n` :
-                            `✅ Location updated successfully.\n\nPlease review your details again:\n\n`;
-            state.step = 'CONFIRM_PROFILE';
+            const previousCity = state.citizen.city || '';
+            const newCity = loc;
+            const prevRes = this.locationResolver.resolve(previousCity);
+            const newRes = this.locationResolver.resolve(newCity);
+            
+            state.citizen.city = newCity;
+            state.citizen.district = newCity;
+            
+            const prevDistrict = prevRes ? prevRes.districtCode : previousCity.toUpperCase();
+            const newDistrict = newRes ? newRes.districtCode : newCity.toUpperCase();
+            
+            if (prevDistrict !== newDistrict) {
+              state.citizen.addressLine1 = '';
+              state.citizen.addressLine2 = '';
+              state.citizen.pincode = '';
+              state.step = 'IDENTIFY_ADDRESS';
+              
+              const localizedCity = this.localizeLocation(newCity, state.language);
+              delete state.data.currentExpectedField;
+              return {
+                response: state.language === 'hi' ? `✅ स्थान सफलतापूर्वक अपडेट किया गया।\n\nआपका पिछला पता अब मान्य नहीं हो सकता है।\n\nकृपया ${localizedCity} में अपना पता दर्ज करें।` :
+                          state.language === 'hinglish' ? `✅ Location updated successfully.\n\nAapka previous address ab valid nahi ho sakta.\n\nPlease ${localizedCity} mein apna address enter karein.` :
+                          `✅ Location updated successfully.\n\nYour previous address may no longer be valid.\n\nPlease enter your address in ${localizedCity}.`,
+                suggestions: [],
+              };
+            } else {
+              successPrefix = state.language === 'hi' ? `✅ स्थान सफलतापूर्वक अपडेट किया गया।\n\nकृपया अपने विवरण की फिर से समीक्षा करें:\n\n` :
+                              state.language === 'hinglish' ? `✅ Location successfully update ho gaya hai.\n\nPlease details fir se review karein:\n\n` :
+                              `✅ Location updated successfully.\n\nPlease review your details again:\n\n`;
+              state.step = 'CONFIRM_PROFILE';
+            }
           } else {
             return {
               response: state.language === 'hi' ? "मुझे ठीक से समझ नहीं आया। क्या आप एक वैध स्थान (शहर या ज़िला) प्रदान कर सकते हैं?" :
@@ -1942,22 +1970,37 @@ export class ChatService {
 
     // Attempt browser location mapping
     if (!state.citizen.city && !state.citizen.district) {
-      if (state.citizen.latitude && state.citizen.longitude) {
-        state.citizen.city = "Lucknow";
-        state.citizen.district = "Lucknow";
-        state.step = 'CONFIRM_LOCATION';
+      const detected = await this.autoDetectLocation(state);
+      if (detected) {
+        state.citizen.city = detected.city;
+        state.citizen.district = detected.district;
+        state.citizen.addressLine1 = detected.addressLine1 || undefined;
+        
+        state.step = 'CONFIRM_LOCATION_SMART';
+        
+        const localizedCity = this.localizeLocation(state.citizen.city || '', state.language);
+        const localizedAddress = state.citizen.addressLine1 || '';
+        
+        let confirmText = `📍 I found your location as:\n\n${localizedCity}, Uttar Pradesh${localizedAddress ? `\n${localizedAddress}` : ''}\n\nIs this correct?`;
+        let confirmSug = '✅ Confirm';
+        let modifySug = '✏️ Modify';
+        if (state.language === 'hi') {
+          confirmText = `📍 मुझे आपका स्थान मिला है:\n\n${localizedCity}, उत्तर प्रदेश${localizedAddress ? `\n${localizedAddress}` : ''}\n\nक्या यह सही है?`;
+          confirmSug = '✅ पुष्टि करें';
+          modifySug = '✏️ बदलें';
+        } else if (state.language === 'hinglish') {
+          confirmText = `📍 Mujhe aapka location mila hai:\n\n${localizedCity}, Uttar Pradesh${localizedAddress ? `\n${localizedAddress}` : ''}\n\nKya ye sahi hai?`;
+        }
         return {
-          response: isHi ? "मुझे आपका स्थान लखनऊ, उत्तर प्रदेश के रूप में मिला है। क्या यह सही है?\n\n- [पुष्टि करें](option:Confirm)\n- [स्थान बदलें](option:Change Location)" :
-                    isHinglish ? "Mujhe aapka location Lucknow, Uttar Pradesh mila hai. Kya ye sahi hai?\n\n- [Confirm](option:Confirm)\n- [Change Location](option:Change Location)" :
-                    "I found your location as Lucknow, Uttar Pradesh. Is this correct?\n\n- [Confirm](option:Confirm)\n- [Change Location](option:Change Location)",
-          suggestions: ['Confirm', 'Change Location'],
+          response: confirmText,
+          suggestions: [confirmSug, modifySug],
         };
       } else {
         state.step = 'IDENTIFY_LOCATION';
         return {
-          response: isHi ? "मैं आपका स्थान स्वचालित रूप से निर्धारित नहीं कर सका।\n\nक्या आप कृपया मुझे अपना शहर, ज़िला या क्षेत्र बता सकते हैं?" :
-                    isHinglish ? "Main aapka location automatically pata nahi kar paya. Aap please apna city, district ya area batayein." :
-                    "I couldn't determine your location automatically.\n\nCould you please tell me your city, district, or area?",
+          response: isHi ? "❌ मैं स्वचालित रूप से आपका वर्तमान स्थान निर्धारित करने में असमर्थ हूँ।\n\nकृपया अपना शहर, ज़िला या क्षेत्र मैन्युअल रूप से दर्ज करें।" :
+                    isHinglish ? "❌ Hum aapka current location automatically detect nahi kar paye.\n\nPlease apna city, district ya area manually enter karein." :
+                    "❌ Unable to determine your current location automatically.\n\nPlease enter your city, district, or area manually.",
           suggestions: [],
         };
       }
@@ -1966,9 +2009,9 @@ export class ChatService {
     if (!state.citizen.addressLine1) {
       state.step = 'IDENTIFY_ADDRESS';
       return {
-        response: isHi ? `👮 मुझे आपका स्थान मिला है: ${state.citizen.city}, ${state.citizen.state}। क्या आप अपना पूरा पता भी प्रदान कर सकते हैं?\n(उदाहरण: मकान नंबर 24, सेक्टर बी, गोमती नगर, लखनऊ - 226010)` :
-                  isHinglish ? `👮 Mujhe aapka location mila: ${state.citizen.city}, ${state.citizen.state}. Kya aap apna full address bhi de sakte hain?\n(Example: House No. 24, Sector B, Gomti Nagar, Lucknow - 226010)` :
-                  `👮 I set your location as: ${state.citizen.city}, ${state.citizen.state}. Could you also provide your complete address?\n(Example: House No. 24, Sector B, Gomti Nagar, Lucknow - 226010)`,
+        response: isHi ? `🏠 कृपया अपना पूरा पता दर्ज करें।\n\nउदाहरण:\nमकान नंबर 24, सेक्टर बी, गोमती नगर, लखनऊ - 226010` :
+                  isHinglish ? `🏠 Please apna complete address enter karein.\n\nExample:\nHouse No. 24, Sector B, Gomti Nagar, Lucknow - 226010` :
+                  `🏠 Please enter your complete address.\n\nExample:\nHouse No. 24, Sector B, Gomti Nagar, Lucknow - 226010`,
         suggestions: [],
       };
     }
@@ -2012,7 +2055,73 @@ export class ChatService {
     return false;
   }
 
+  private validateLocationAddressConsistency(state: ChatSessionState): boolean {
+    if (!state.citizen.city || !state.citizen.addressLine1) {
+      return true;
+    }
+    const fullAddress = `${state.citizen.addressLine1} ${state.citizen.addressLine2 || ''} ${state.citizen.pincode || ''}`.trim();
+    const cityRes = this.locationResolver.resolve(state.citizen.city);
+    const addressRes = this.locationResolver.resolve(fullAddress);
+    
+    if (cityRes && cityRes.districtCode && addressRes && addressRes.districtCode && addressRes.confidence > 0.3) {
+      if (cityRes.districtCode === addressRes.districtCode) {
+        return true;
+      }
+      
+      const addrLower = fullAddress.toLowerCase();
+      const cityLower = state.citizen.city.toLowerCase().trim();
+      
+      // 1. Check if full address literally contains the city name or vice-versa
+      if (addrLower.includes(cityLower) || cityLower.includes(addrLower)) {
+        return true;
+      }
+      
+      // 2. Check if full address contains district name (e.g. gautam buddha nagar)
+      const districtLower = cityRes.districtCode.toLowerCase().replace(/_/g, ' ');
+      if (addrLower.includes(districtLower)) {
+        return true;
+      }
+      
+      // 3. Special location overrides
+      if (addressRes.districtCode === 'PRAYAGRAJ' && (addrLower.includes('civil lines') || addrLower.includes('civillines')) && !addrLower.includes('prayagraj') && !addrLower.includes('allahabad')) {
+        return true;
+      }
+      if (addressRes.districtCode === 'LUCKNOW' && addrLower.includes('cantonment') && !addrLower.includes('lucknow')) {
+        return true;
+      }
+      
+      // 4. Token-by-token check: check if any word/token in address resolves to the target district code
+      const tokens = addrLower.split(/[\s,.\-\/]+/).map(t => t.trim()).filter(Boolean);
+      for (const token of tokens) {
+        if (token.length > 2) {
+          const tokenRes = this.locationResolver.resolve(token);
+          if (tokenRes && tokenRes.districtCode === cityRes.districtCode) {
+            return true;
+          }
+        }
+      }
+      
+      return false;
+    }
+    return true;
+  }
+
   private renderConfirmationCard(state: ChatSessionState): { response: string; suggestions: string[] } {
+    if (!this.validateLocationAddressConsistency(state)) {
+      state.citizen.addressLine1 = '';
+      state.citizen.addressLine2 = '';
+      state.citizen.pincode = '';
+      state.step = 'IDENTIFY_ADDRESS';
+      const isHi = state.language === 'hi';
+      const isHinglish = state.language === 'hinglish';
+      return {
+        response: isHi ? "आपका पता आपके चयनित स्थान से मेल नहीं खाता है।\n\nकृपया अपना पता फिर से दर्ज करें।" :
+                  isHinglish ? "Aapka address aapke selected location se match nahi karta.\n\nPlease apna address phir se enter karein." :
+                  "Your address does not match your selected location.\n\nPlease enter your address again.",
+        suggestions: [],
+      };
+    }
+
     let addressDisplay = state.citizen.addressLine1 || '';
     if (state.citizen.addressLine2) {
       addressDisplay += `, ${state.citizen.addressLine2}`;
@@ -3391,7 +3500,7 @@ Would you like to submit this application?
             return {
               city: cityName,
               district: districtName,
-              addressLine1: nearest.localityCode ? `${nearest.localityCode.replace(/_/g, ' ')}, ${cityName}` : `${cityName}`
+              addressLine1: nearest.localityCode ? `${nearest.localityCode.replace(/_/g, ' ')}, ${cityName}` : undefined
             };
           }
         }
@@ -3426,7 +3535,8 @@ Would you like to submit this application?
     if (state.data.ipLocation) {
       return {
         city: state.data.ipLocation,
-        district: state.data.ipLocation
+        district: state.data.ipLocation,
+        addressLine1: undefined
       };
     }
 

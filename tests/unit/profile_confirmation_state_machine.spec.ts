@@ -247,4 +247,86 @@ describe('Profile Confirmation & Citizen Identification State Machine Test', () 
     const state = await chatService.getOrCreateSession(sess);
     expect(state.citizen.fullName).toBe("Mohan Singh");
   });
+
+  it('Test Scenario 13: GPS unavailable prompts manual location entry and no default is created', async () => {
+    const sess = `test-sess-manual-fallback-${Date.now()}`;
+    await chatService.sendMessage("File Complaint", sess);
+    await chatService.sendMessage("Manoj Tiwari", sess);
+    
+    // Send mobile. Geolocation coordinates are not injected, returning profile skipped, IP location missing.
+    const res = await chatService.sendMessage("9898989898", sess);
+    expect(res._debug.step).toBe("IDENTIFY_LOCATION");
+    expect(res.response).toContain("Unable to determine your current location automatically");
+    
+    const state = await chatService.getOrCreateSession(sess);
+    expect(state.citizen.city).toBe("");
+    expect(state.citizen.addressLine1).toBe("");
+  });
+
+  it('Test Scenario 14: Cross-district location changes clear address', async () => {
+    const sess = `test-sess-cross-district-${Date.now()}`;
+    await chatService.sendMessage("File Complaint", sess);
+    await chatService.sendMessage("Manoj Tiwari", sess);
+    await chatService.sendMessage("7878787878", sess);
+    await chatService.sendMessage("Ayodhya", sess);
+    await chatService.sendMessage("Confirm", sess);
+    await chatService.sendMessage("House No 22 Civil Lines Ayodhya", sess);
+    
+    // Modify Location to Meerut (which is a different district than Ayodhya)
+    await chatService.sendMessage("Modify Details", sess);
+    await chatService.sendMessage("3", sess); // Select Location
+    const res = await chatService.sendMessage("Meerut", sess);
+    
+    expect(res.response).toContain("Location updated successfully");
+    expect(res.response).toContain("previous address may no longer be valid");
+    expect(res._debug.step).toBe("IDENTIFY_ADDRESS");
+    
+    const state = await chatService.getOrCreateSession(sess);
+    expect(state.citizen.city).toBe("Meerut");
+    expect(state.citizen.addressLine1).toBe("");
+  });
+
+  it('Test Scenario 15: Same-district location changes preserve address', async () => {
+    const sess = `test-sess-same-district-${Date.now()}`;
+    await chatService.sendMessage("File Complaint", sess);
+    await chatService.sendMessage("Manoj Tiwari", sess);
+    await chatService.sendMessage("7878787878", sess);
+    await chatService.sendMessage("Lucknow", sess);
+    await chatService.sendMessage("Confirm", sess);
+    await chatService.sendMessage("House No 12 Hazratganj Lucknow", sess);
+    
+    // Modify Location to Gomti Nagar (which is also under Lucknow district)
+    await chatService.sendMessage("Modify Details", sess);
+    await chatService.sendMessage("3", sess);
+    const res = await chatService.sendMessage("Gomti Nagar", sess);
+    
+    expect(res.response).toContain("✅ Location updated successfully");
+    expect(res._debug.step).toBe("CONFIRM_PROFILE");
+    
+    const state = await chatService.getOrCreateSession(sess);
+    expect(state.citizen.city).toBe("Gomti Nagar");
+    expect(state.citizen.addressLine1).toBe("House No 12 Hazratganj Lucknow");
+  });
+
+  it('Test Scenario 16: Review screen protection clears mismatched location/address', async () => {
+    const sess = `test-sess-mismatch-protect-${Date.now()}`;
+    await chatService.sendMessage("File Complaint", sess);
+    await chatService.sendMessage("Manoj Tiwari", sess);
+    await chatService.sendMessage("7878787878", sess);
+    await chatService.sendMessage("Meerut", sess);
+    await chatService.sendMessage("Confirm", sess);
+    
+    // Inject mismatched address directly into state to simulate bypass or corrupt data
+    const state = await chatService.getOrCreateSession(sess);
+    state.citizen.addressLine1 = "Cantt, Ayodhya"; 
+    await chatService.saveSession(sess, state);
+    
+    // Transition to CONFIRM_PROFILE
+    const res = await chatService.sendMessage("Confirm", sess);
+    expect(res.response).toContain("Your address does not match your selected location");
+    expect(res._debug.step).toBe("IDENTIFY_ADDRESS");
+    
+    const updatedState = await chatService.getOrCreateSession(sess);
+    expect(updatedState.citizen.addressLine1).toBe("");
+  });
 });
