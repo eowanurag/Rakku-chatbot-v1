@@ -268,6 +268,12 @@ npm run build
   - Eliminated telemetry classification drift by aligning feedback categories (e.g., mapping `'SLOW_RESPONSE'` to `'PERFORMANCE'`) between FastAPI and NestJS systems.
 - **Build & Bundle Compatibility:**
   - Resolved compiler compatibility blockers in the tracking schema by updating properties to use `z.record(z.string(), z.any())` to align with Zod v4+ signatures.
+- **Mobile-First Onboarding & Returning Citizen Lookup:**
+  - Swapped greeting flow order to request mobile number first, looking up saved citizen records dynamically to enable one-step onboarding for returning users.
+- **Mobile Sidebar Default State:**
+  - Modified the chat history panel to render closed by default on mobile screens (avoiding friction upon launch) while keeping it open on larger desktop viewports.
+- **Smart Geolocation Fallback & Address Consistency:**
+  - Configured system to prompt manual location input without default fake localities if automatic detection fails, and automatically clear outdated addresses when switching districts.
 
 **Key Focus Areas:**
 - Horizontal scaling validations on Render
@@ -287,6 +293,7 @@ npm run build
 | v1.0-RC2 | 2026-06-15 | PRP Hardening: Review cards, source badges, screen reader announcements, and 6 dedicated integration tests |
 | v1.0-RC3 | 2026-06-15 | Feedback Intelligence: Category mapping alignment, rating pipelines, and 8 dedicated integration tests |
 | v1.0 | 2026-06-15 | V1 Production Ready: Release Candidate Audit, Localization Parity Hardening, and full-system verification |
+| v1.1 | 2026-06-21 | Mobile-First Welcome Flow, Returning Citizen Lookup, Mobile Sidebar Default Tuning, and Geolocation Consistency Fixes |
 
 ## Contributing
 
