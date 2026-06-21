@@ -76,9 +76,9 @@ describe('Stability and Resilience Regression Suite', () => {
     const sess = "stability-sess-3-" + Math.random().toString(36).substring(7);
     await chatService.sendMessage("hello", sess);
     await chatService.sendMessage("english", sess);
-    await chatService.sendMessage("File Complaint", sess);
+    const randomMobile = '9' + Math.floor(100000000 + Math.random() * 900000000).toString();
+    await chatService.sendMessage(randomMobile, sess);
     await chatService.sendMessage("Rahul Roy", sess);
-    await chatService.sendMessage("9988776655", sess);
     await chatService.sendMessage("Kanpur", sess);
     await chatService.sendMessage("Confirm", sess); // Confirm location
     const confirmationPrompt = await chatService.sendMessage("Sector 1, Kanpur - 208002", sess);
@@ -109,8 +109,9 @@ describe('Stability and Resilience Regression Suite', () => {
     await chatService.sendMessage("hello", deadEndSess);
     await chatService.sendMessage("english", deadEndSess);
     await chatService.sendMessage("File Complaint", deadEndSess);
+    const randomMobile = '9' + Math.floor(100000000 + Math.random() * 900000000).toString();
+    await chatService.sendMessage(randomMobile, deadEndSess);
     await chatService.sendMessage("Test User", deadEndSess);
-    await chatService.sendMessage("9111222333", deadEndSess);
     await chatService.sendMessage("Lucknow", deadEndSess);
     await chatService.sendMessage("Confirm", deadEndSess); // Confirm location
     await chatService.sendMessage("Gomti Nagar, Lucknow - 226010", deadEndSess);

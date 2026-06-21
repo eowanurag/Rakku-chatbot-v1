@@ -47,18 +47,50 @@ describe('Profile Reuse Protocol (PRP) Test Suite', () => {
     );
   });
 
+  beforeEach(async () => {
+    const testMobiles = ['8989898989', '9988776655'];
+    const testCitizenIds = (await prisma.citizen.findMany({
+      where: { mobileNumber: { in: testMobiles } }
+    })).map(c => c.id);
+    
+    if (testCitizenIds.length > 0) {
+      await prisma.complaint.deleteMany({ where: { citizenId: { in: testCitizenIds } } });
+      await prisma.verification.deleteMany({ where: { citizenId: { in: testCitizenIds } } });
+      await prisma.characterCertificate.deleteMany({ where: { citizenId: { in: testCitizenIds } } });
+      await prisma.eventPermission.deleteMany({ where: { citizenId: { in: testCitizenIds } } });
+      await prisma.notification.deleteMany({ where: { citizenId: { in: testCitizenIds } } });
+      await prisma.citizenFeedback.deleteMany({ where: { citizenId: { in: testCitizenIds } } });
+      await prisma.citizen.deleteMany({ where: { id: { in: testCitizenIds } } });
+    }
+  });
+
   afterAll(async () => {
+    const testMobiles = ['8989898989', '9988776655'];
+    const testCitizenIds = (await prisma.citizen.findMany({
+      where: { mobileNumber: { in: testMobiles } }
+    })).map(c => c.id);
+    
+    if (testCitizenIds.length > 0) {
+      await prisma.complaint.deleteMany({ where: { citizenId: { in: testCitizenIds } } });
+      await prisma.verification.deleteMany({ where: { citizenId: { in: testCitizenIds } } });
+      await prisma.characterCertificate.deleteMany({ where: { citizenId: { in: testCitizenIds } } });
+      await prisma.eventPermission.deleteMany({ where: { citizenId: { in: testCitizenIds } } });
+      await prisma.notification.deleteMany({ where: { citizenId: { in: testCitizenIds } } });
+      await prisma.citizenFeedback.deleteMany({ where: { citizenId: { in: testCitizenIds } } });
+      await prisma.citizen.deleteMany({ where: { id: { in: testCitizenIds } } });
+    }
     await prisma.$disconnect();
   });
 
   const getNewSession = () => 'prp-test-' + Math.random().toString(36).substring(7);
 
-  const verifyProfile = async (sess: string, name: string = 'Juhi Pandey', mobile: string = '8989898989') => {
+  const verifyProfile = async (sess: string, name: string = 'Juhi Pandey', mobile?: string) => {
+    const mob = mobile || '9' + Math.floor(100000000 + Math.random() * 900000000).toString();
     await chatService.sendMessage('hello', sess);
     await chatService.sendMessage('english', sess);
     await chatService.sendMessage('📜 Character Certificate', sess);
+    await chatService.sendMessage(mob, sess);
     await chatService.sendMessage(name, sess);
-    await chatService.sendMessage(mobile, sess);
     await chatService.sendMessage('Ayodhya', sess);
     await chatService.sendMessage('Confirm', sess);
     await chatService.sendMessage('Cant, Ayodhya', sess);
@@ -120,7 +152,7 @@ describe('Profile Reuse Protocol (PRP) Test Suite', () => {
 
   it('should support Event Permission (Myself)', async () => {
     const sess = getNewSession();
-    await verifyProfile(sess);
+    await verifyProfile(sess, 'Juhi Pandey', '8989898989');
 
     // Switch to Event Permission workflow
     await chatService.sendMessage('cancel', sess);

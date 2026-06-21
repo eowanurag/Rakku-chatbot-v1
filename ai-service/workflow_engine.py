@@ -1714,30 +1714,57 @@ class WorkflowEngine:
                 }
 
         # State Machine steps
-        if step_str == "IDENTIFY_NAME":
-            valid, confidence = validate_name_confidence(message)
-            if valid:
-                session.fullName = message.strip().title()
-                if len(session.fullName.split()) == 1:
-                    session.data["name_suggest_flag"] = True
-                session.step = "IDENTIFY_MOBILE"
-                
-                full_name_disp = format_name_with_honorific(session.fullName, session.language)
-                prompt_text = format_message("PROFILE_MOBILE_REQUEST", session.language, session, {"name": full_name_disp})
-                
-                if session.data.get("name_suggest_flag"):
-                    suggest_text = "*(Polite Suggestion: Providing a full name with surname is recommended for official records, but we can proceed.)*\n\n"
-                    if session.language == "hi":
-                        suggest_text = "*(सुझाव: आधिकारिक अभिलेखों के लिए पूरा नाम देना उपयोगी होता है, लेकिन हम आगे बढ़ सकते हैं।)*\n\n"
-                    elif session.language == "hinglish":
-                        suggest_text = "*(Suggestion: Official records ke liye surname ke saath full name dena sahi rehta hai, par hum aage badh sakte hain.)*\n\n"
-                    prompt_text = suggest_text + prompt_text
-                    session.data["name_suggest_flag"] = False
+        if step_str == "IDENTIFY_MOBILE_FIRST":
+            if validate_mobile(message):
+                session.mobileNumber = normalize_mobile(message)
+                session.step = "IDENTIFY_NAME"
+                localized_not_found = format_message("PROFILE_NOT_FOUND", session.language, session)
+                name_prompt = format_message("PROFILE_NAME_REQUEST", session.language, session)
+                return {
+                    "intercepted": True,
+                    "response": f"{localized_not_found}\n\n{name_prompt}",
+                    "suggestions": []
+                }
+            else:
+                prompt_text = format_message("ERROR_VALIDATION_MOBILE", session.language, session)
                 return {
                     "intercepted": True,
                     "response": prompt_text,
                     "suggestions": []
                 }
+        elif step_str == "IDENTIFY_NAME":
+            valid, confidence = validate_name_confidence(message)
+            if valid:
+                session.fullName = message.strip().title()
+                if len(session.fullName.split()) == 1:
+                    session.data["name_suggest_flag"] = True
+                
+                if session.mobileNumber:
+                    session.step = "IDENTIFY_LOCATION"
+                    prompt_text = format_message("PROFILE_LOCATION_REQUEST", session.language, session)
+                    return {
+                        "intercepted": True,
+                        "response": prompt_text,
+                        "suggestions": []
+                    }
+                else:
+                    session.step = "IDENTIFY_MOBILE"
+                    full_name_disp = format_name_with_honorific(session.fullName, session.language)
+                    prompt_text = format_message("PROFILE_MOBILE_REQUEST", session.language, session, {"name": full_name_disp})
+                    
+                    if session.data.get("name_suggest_flag"):
+                        suggest_text = "*(Polite Suggestion: Providing a full name with surname is recommended for official records, but we can proceed.)*\n\n"
+                        if session.language == "hi":
+                            suggest_text = "*(सुझाव: आधिकारिक अभिलेखों के लिए पूरा नाम देना उपयोगी होता है, लेकिन हम आगे बढ़ सकते हैं।)*\n\n"
+                        elif session.language == "hinglish":
+                            suggest_text = "*(Suggestion: Official records ke liye surname ke saath full name dena sahi rehta hai, par hum aage badh sakte hain.)*\n\n"
+                        prompt_text = suggest_text + prompt_text
+                        session.data["name_suggest_flag"] = False
+                    return {
+                        "intercepted": True,
+                        "response": prompt_text,
+                        "suggestions": []
+                    }
             else:
                 prompt_text = format_message("ERROR_VALIDATION_NAME", session.language, session)
                 return {
@@ -2115,6 +2142,15 @@ class WorkflowEngine:
             return self.render_confirmation_card(session)
 
         # Check for missing inputs
+        if not session.mobileNumber and not session.fullName:
+            session.step = "IDENTIFY_MOBILE_FIRST"
+            prompt_text = format_message("PROFILE_MOBILE_FIRST_REQUEST", session.language, session)
+            return {
+                "intercepted": True,
+                "response": prompt_text,
+                "suggestions": []
+            }
+
         if not session.fullName:
             session.step = "IDENTIFY_NAME"
             prompt_text = format_message("PROFILE_NAME_REQUEST", session.language, session)

@@ -59,8 +59,9 @@ describe('Feedback Intelligence Test Suite', () => {
     await chatService.sendMessage('hello', sess);
     await chatService.sendMessage('english', sess);
     await chatService.sendMessage('File Complaint', sess);
+    const randomMobile = '9' + Math.floor(100000000 + Math.random() * 900000000).toString();
+    await chatService.sendMessage(randomMobile, sess);
     await chatService.sendMessage('Rohit Sharma', sess);
-    await chatService.sendMessage('9876543210', sess);
     await chatService.sendMessage('Lucknow', sess);
     await chatService.sendMessage('Confirm', sess);
     await chatService.sendMessage('Sector 4, Gomti Nagar, Lucknow', sess);

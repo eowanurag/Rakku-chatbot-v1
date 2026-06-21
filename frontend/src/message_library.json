@@ -586,6 +586,36 @@
       "en": "⚠️ This appears to be an emergency situation.\n\nPlease contact UP Police Emergency Services immediately by dialing 112.\n\nIf someone is in immediate danger, do not wait for an online response.",
       "hi": "⚠️ यह एक आपातकालीन स्थिति लगती है।\n\nकृपया तुरंत 112 डायल करके उत्तर प्रदेश पुलिस आपातकालीन सेवाओं से संपर्क करें।\n\nयदि कोई तत्काल खतरे में है, तो ऑनलाइन प्रतिक्रिया की प्रतीक्षा न करें।",
       "hinglish": "⚠️ Yeh emergency situation lag rahi hai.\n\nPlease immediate help ke liye UP Police ko 112 dial karke contact karein.\n\nAgar koi immediate danger mein hai, toh online response ka wait na karein."
+    },
+    "PROFILE_MOBILE_FIRST_REQUEST": {
+      "en": "👮 Welcome to Rakku\n\nI am Rakku, your Digital Citizen Assistance Officer.\n\nTo get started, please enter your mobile number so I can retrieve your profile and assist you faster.\n\n📱 Enter Mobile Number",
+      "hi": "👮 रक्कू में आपका स्वागत है\n\nमैं रक्कू हूँ, आपका डिजिटल नागरिक सहायता अधिकारी।\n\nशुरू करने के लिए, कृपया अपना मोबाइल नंबर दर्ज करें ताकि मैं आपकी प्रोफ़ाइल ढूंढ सकूं और आपकी तेज़ी से सहायता कर सकूं।\n\n📱 मोबाइल नंबर दर्ज करें",
+      "hinglish": "👮 Rakku mein aapka swagat hai\n\nMain hoon Rakku, aapka Digital Citizen Assistance Officer.\n\nShuru karne ke liye, please apna mobile number enter karein takki main aapki profile retrieve kar sakoon aur aapki faster help kar sakoon.\n\n📱 Mobile Number enter karein"
+    },
+    "PROFILE_WELCOME_BACK": {
+      "en": "👮 Welcome back, {name}.\n\nI found your profile:\n\n👤 **Name:** {name}\n📱 **Mobile:** {mobile}\n📍 **Location:** {district}, Uttar Pradesh\n🏠 **Address:** {address}\n\nIs this information correct?\n\n- [✅ Continue](option:Continue)\n- [✏️ Update Profile](option:Update Profile)\n- [🆕 Use Different Details](option:Use Different Details)",
+      "hi": "👮 स्वागत है, {name}।\n\nमुझे आपकी प्रोफ़ाइल मिली है:\n\n👤 **नाम:** {name}\n📱 **मोबाइल:** {mobile}\n📍 **स्थान:** {district}, उत्तर प्रदेश\n🏠 **पता:** {address}\n\nक्या यह जानकारी सही है?\n\n- [✅ जारी रखें](option:Continue)\n- [✏️ प्रोफ़ाइल अपडेट करें](option:Update Profile)\n- [🆕 अन्य विवरण उपयोग करें](option:Use Different Details)",
+      "hinglish": "👮 Welcome back, {name}.\n\nMujhe aapki profile mili hai:\n\n👤 **Name:** {name}\n📱 **Mobile:** {mobile}\n📍 **Location:** {district}, Uttar Pradesh\n🏠 **Address:** {address}\n\nKya ye information sahi hai?\n\n- [✅ Continue](option:Continue)\n- [✏️ Update Profile](option:Update Profile)\n- [🆕 Use Different Details](option:Use Different Details)"
+    },
+    "PROFILE_NOT_FOUND": {
+      "en": "I couldn't find an existing profile for this mobile number.\n\nLet's create your profile.",
+      "hi": "मुझे इस मोबाइल नंबर के लिए कोई मौजूदा प्रोफ़ाइल नहीं मिली।\n\nआइए आपकी प्रोफ़ाइल बनाएं।",
+      "hinglish": "Mujhe is mobile number ke liye koi existing profile nahi mili.\n\nChaliye aapki profile banate hain."
+    },
+    "OPTION_CONTINUE": {
+      "en": "Continue",
+      "hi": "जारी रखें",
+      "hinglish": "Continue"
+    },
+    "OPTION_UPDATE_PROFILE": {
+      "en": "Update Profile",
+      "hi": "प्रोफ़ाइल अपडेट करें",
+      "hinglish": "Update Profile"
+    },
+    "OPTION_USE_DIFFERENT": {
+      "en": "Use Different Details",
+      "hi": "अन्य विवरण उपयोग करें",
+      "hinglish": "Use Different Details"
     }
   }
 }

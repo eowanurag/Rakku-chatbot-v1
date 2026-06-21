@@ -47,15 +47,46 @@ describe('Profile Confirmation & Citizen Identification State Machine Test', () 
     );
   });
 
+  beforeEach(async () => {
+    const testMobiles = ['7878787878', '9898989898'];
+    const testCitizenIds = (await prisma.citizen.findMany({
+      where: { mobileNumber: { in: testMobiles } }
+    })).map(c => c.id);
+    
+    if (testCitizenIds.length > 0) {
+      await prisma.complaint.deleteMany({ where: { citizenId: { in: testCitizenIds } } });
+      await prisma.verification.deleteMany({ where: { citizenId: { in: testCitizenIds } } });
+      await prisma.characterCertificate.deleteMany({ where: { citizenId: { in: testCitizenIds } } });
+      await prisma.eventPermission.deleteMany({ where: { citizenId: { in: testCitizenIds } } });
+      await prisma.notification.deleteMany({ where: { citizenId: { in: testCitizenIds } } });
+      await prisma.citizenFeedback.deleteMany({ where: { citizenId: { in: testCitizenIds } } });
+      await prisma.citizen.deleteMany({ where: { id: { in: testCitizenIds } } });
+    }
+  });
+
   afterAll(async () => {
+    const testMobiles = ['7878787878', '9898989898'];
+    const testCitizenIds = (await prisma.citizen.findMany({
+      where: { mobileNumber: { in: testMobiles } }
+    })).map(c => c.id);
+    
+    if (testCitizenIds.length > 0) {
+      await prisma.complaint.deleteMany({ where: { citizenId: { in: testCitizenIds } } });
+      await prisma.verification.deleteMany({ where: { citizenId: { in: testCitizenIds } } });
+      await prisma.characterCertificate.deleteMany({ where: { citizenId: { in: testCitizenIds } } });
+      await prisma.eventPermission.deleteMany({ where: { citizenId: { in: testCitizenIds } } });
+      await prisma.notification.deleteMany({ where: { citizenId: { in: testCitizenIds } } });
+      await prisma.citizenFeedback.deleteMany({ where: { citizenId: { in: testCitizenIds } } });
+      await prisma.citizen.deleteMany({ where: { id: { in: testCitizenIds } } });
+    }
     await prisma.$disconnect();
   });
 
   it('Test Scenario 1: Happy Path', async () => {
     const sess = `test-sess-${Date.now()}`;
     await chatService.sendMessage("File Complaint", sess);
-    await chatService.sendMessage("Manoj Tiwari", sess);
     await chatService.sendMessage("7878787878", sess);
+    await chatService.sendMessage("Manoj Tiwari", sess);
     await chatService.sendMessage("Ayodhya", sess);
     await chatService.sendMessage("Confirm", sess);
     await chatService.sendMessage("House No 22 Civil Lines Ayodhya", sess);
@@ -69,8 +100,8 @@ describe('Profile Confirmation & Citizen Identification State Machine Test', () 
   it('Test Scenario 2: Address Corruption Protection', async () => {
     const sess = `test-sess-corruption-${Date.now()}`;
     await chatService.sendMessage("File Complaint", sess);
-    await chatService.sendMessage("Manoj Tiwari", sess);
     await chatService.sendMessage("7878787878", sess);
+    await chatService.sendMessage("Manoj Tiwari", sess);
     await chatService.sendMessage("Ayodhya", sess);
     
     // In CONFIRM_LOCATION
@@ -85,8 +116,8 @@ describe('Profile Confirmation & Citizen Identification State Machine Test', () 
   it('Test Scenario 3: Address Mandatory', async () => {
     const sess = `test-sess-mandatory-${Date.now()}`;
     await chatService.sendMessage("File Complaint", sess);
-    await chatService.sendMessage("Manoj Tiwari", sess);
     await chatService.sendMessage("7878787878", sess);
+    await chatService.sendMessage("Manoj Tiwari", sess);
     await chatService.sendMessage("Ayodhya", sess);
     await chatService.sendMessage("Confirm", sess); // Confirm location -> IDENTIFY_ADDRESS
     
@@ -98,8 +129,8 @@ describe('Profile Confirmation & Citizen Identification State Machine Test', () 
   it('Test Scenario 4: Profile Confirmation Transition', async () => {
     const sess = `test-sess-trans-${Date.now()}`;
     await chatService.sendMessage("File Complaint", sess);
-    await chatService.sendMessage("Manoj Tiwari", sess);
     await chatService.sendMessage("7878787878", sess);
+    await chatService.sendMessage("Manoj Tiwari", sess);
     await chatService.sendMessage("Ayodhya", sess);
     await chatService.sendMessage("Confirm", sess);
     await chatService.sendMessage("House No 22 Civil Lines Ayodhya", sess);
@@ -114,8 +145,8 @@ describe('Profile Confirmation & Citizen Identification State Machine Test', () 
   it('Test Scenario 5: Confirmation Loop Detection', async () => {
     const sess = `test-sess-loop-${Date.now()}`;
     await chatService.sendMessage("File Complaint", sess);
-    await chatService.sendMessage("Manoj Tiwari", sess);
     await chatService.sendMessage("7878787878", sess);
+    await chatService.sendMessage("Manoj Tiwari", sess);
     await chatService.sendMessage("Ayodhya", sess);
     await chatService.sendMessage("Confirm", sess);
     await chatService.sendMessage("House No 22 Civil Lines Ayodhya", sess);
@@ -136,8 +167,8 @@ describe('Profile Confirmation & Citizen Identification State Machine Test', () 
   it('Test Scenario 6: Change Location', async () => {
     const sess = `test-sess-change-loc-${Date.now()}`;
     await chatService.sendMessage("File Complaint", sess);
-    await chatService.sendMessage("Manoj Tiwari", sess);
-    await chatService.sendMessage("7878787878", sess); // Moves to IDENTIFY_LOCATION
+    await chatService.sendMessage("7878787878", sess);
+    await chatService.sendMessage("Manoj Tiwari", sess); // Moves to IDENTIFY_LOCATION
     await chatService.sendMessage("Ayodhya", sess); // Moves to CONFIRM_LOCATION
     
     const res = await chatService.sendMessage("Change Location", sess);
@@ -148,8 +179,8 @@ describe('Profile Confirmation & Citizen Identification State Machine Test', () 
   it('Test Scenario 7: Modify Mobile', async () => {
     const sess = `test-sess-modify-${Date.now()}`;
     await chatService.sendMessage("File Complaint", sess);
-    await chatService.sendMessage("Manoj Tiwari", sess);
     await chatService.sendMessage("7878787878", sess);
+    await chatService.sendMessage("Manoj Tiwari", sess);
     await chatService.sendMessage("Ayodhya", sess);
     await chatService.sendMessage("Confirm", sess);
     await chatService.sendMessage("House No 22 Civil Lines Ayodhya", sess);
@@ -174,8 +205,8 @@ describe('Profile Confirmation & Citizen Identification State Machine Test', () 
   it('Test Scenario 9: Internal Action Leakage', async () => {
     const sess = `test-sess-leak-${Date.now()}`;
     await chatService.sendMessage("File Complaint", sess);
-    await chatService.sendMessage("Manoj Tiwari", sess);
     await chatService.sendMessage("7878787878", sess);
+    await chatService.sendMessage("Manoj Tiwari", sess);
     await chatService.sendMessage("Ayodhya", sess);
     await chatService.sendMessage("Confirm", sess);
     const res = await chatService.sendMessage("House No 22 Civil Lines Ayodhya", sess);
@@ -188,8 +219,8 @@ describe('Profile Confirmation & Citizen Identification State Machine Test', () 
   it('Test Scenario 10: Full Data Integrity', async () => {
     const sess = `test-sess-integrity-${Date.now()}`;
     await chatService.sendMessage("File Complaint", sess);
-    await chatService.sendMessage("Manoj Tiwari", sess);
     await chatService.sendMessage("7878787878", sess);
+    await chatService.sendMessage("Manoj Tiwari", sess);
     await chatService.sendMessage("Ayodhya", sess);
     await chatService.sendMessage("Confirm", sess);
     await chatService.sendMessage("House No 22 Civil Lines Ayodhya", sess);
@@ -206,7 +237,6 @@ describe('Profile Confirmation & Citizen Identification State Machine Test', () 
   it('Test Scenario 11: Geolocation Smart Flow', async () => {
     const sess = `test-sess-smart-geo-${Date.now()}`;
     await chatService.sendMessage("File Complaint", sess);
-    await chatService.sendMessage("Manoj Tiwari", sess);
     
     // Inject browser geolocation coords
     const state = await chatService.getOrCreateSession(sess);
@@ -214,8 +244,10 @@ describe('Profile Confirmation & Citizen Identification State Machine Test', () 
     state.citizen.longitude = 80.9462;
     await chatService.saveSession(sess, state);
 
-    // Provide mobile number -> triggers auto-location
-    const res = await chatService.sendMessage("7878787878", sess);
+    // Provide mobile number -> triggers name prompt
+    await chatService.sendMessage("7878787878", sess);
+    // Provide name -> triggers auto-location
+    const res = await chatService.sendMessage("Manoj Tiwari", sess);
     expect(res._debug.step).toBe("CONFIRM_LOCATION_SMART");
     expect(res.response).toContain("Lucknow");
 
@@ -231,8 +263,8 @@ describe('Profile Confirmation & Citizen Identification State Machine Test', () 
   it('Test Scenario 12: Single Field Modification Flow', async () => {
     const sess = `test-sess-smart-mod-${Date.now()}`;
     await chatService.sendMessage("File Complaint", sess);
-    await chatService.sendMessage("Manoj Tiwari", sess);
     await chatService.sendMessage("7878787878", sess);
+    await chatService.sendMessage("Manoj Tiwari", sess);
     await chatService.sendMessage("Ayodhya", sess);
     await chatService.sendMessage("Confirm", sess);
     await chatService.sendMessage("House No 22 Civil Lines Ayodhya", sess);
@@ -251,10 +283,9 @@ describe('Profile Confirmation & Citizen Identification State Machine Test', () 
   it('Test Scenario 13: GPS unavailable prompts manual location entry and no default is created', async () => {
     const sess = `test-sess-manual-fallback-${Date.now()}`;
     await chatService.sendMessage("File Complaint", sess);
-    await chatService.sendMessage("Manoj Tiwari", sess);
-    
     // Send mobile. Geolocation coordinates are not injected, returning profile skipped, IP location missing.
-    const res = await chatService.sendMessage("9898989898", sess);
+    await chatService.sendMessage("9898989898", sess);
+    const res = await chatService.sendMessage("Manoj Tiwari", sess);
     expect(res._debug.step).toBe("IDENTIFY_LOCATION");
     expect(res.response).toContain("Unable to determine your current location automatically");
     
@@ -266,8 +297,8 @@ describe('Profile Confirmation & Citizen Identification State Machine Test', () 
   it('Test Scenario 14: Cross-district location changes clear address', async () => {
     const sess = `test-sess-cross-district-${Date.now()}`;
     await chatService.sendMessage("File Complaint", sess);
-    await chatService.sendMessage("Manoj Tiwari", sess);
     await chatService.sendMessage("7878787878", sess);
+    await chatService.sendMessage("Manoj Tiwari", sess);
     await chatService.sendMessage("Ayodhya", sess);
     await chatService.sendMessage("Confirm", sess);
     await chatService.sendMessage("House No 22 Civil Lines Ayodhya", sess);
@@ -289,8 +320,8 @@ describe('Profile Confirmation & Citizen Identification State Machine Test', () 
   it('Test Scenario 15: Same-district location changes preserve address', async () => {
     const sess = `test-sess-same-district-${Date.now()}`;
     await chatService.sendMessage("File Complaint", sess);
-    await chatService.sendMessage("Manoj Tiwari", sess);
     await chatService.sendMessage("7878787878", sess);
+    await chatService.sendMessage("Manoj Tiwari", sess);
     await chatService.sendMessage("Lucknow", sess);
     await chatService.sendMessage("Confirm", sess);
     await chatService.sendMessage("House No 12 Hazratganj Lucknow", sess);
@@ -311,8 +342,8 @@ describe('Profile Confirmation & Citizen Identification State Machine Test', () 
   it('Test Scenario 16: Review screen protection clears mismatched location/address', async () => {
     const sess = `test-sess-mismatch-protect-${Date.now()}`;
     await chatService.sendMessage("File Complaint", sess);
-    await chatService.sendMessage("Manoj Tiwari", sess);
     await chatService.sendMessage("7878787878", sess);
+    await chatService.sendMessage("Manoj Tiwari", sess);
     await chatService.sendMessage("Meerut", sess);
     await chatService.sendMessage("Confirm", sess);
     

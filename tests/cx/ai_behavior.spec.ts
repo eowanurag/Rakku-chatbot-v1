@@ -57,8 +57,9 @@ describe('AI Behavior Test', () => {
     await chatService.sendMessage("hello", sess);
     await chatService.sendMessage("english", sess);
     await chatService.sendMessage("File Complaint", sess);
+    const randomMobile = '9' + Math.floor(100000000 + Math.random() * 900000000).toString();
+    await chatService.sendMessage(randomMobile, sess);
     await chatService.sendMessage("Rohit Sharma", sess);
-    await chatService.sendMessage("9876543210", sess);
     await chatService.sendMessage("Noida", sess);
     await chatService.sendMessage("Confirm", sess);
     await chatService.sendMessage("Sector 15, Noida - 201301", sess);
@@ -83,10 +84,13 @@ describe('AI Behavior Test', () => {
     await chatService.sendMessage("english", sess);
     
     const r1 = await chatService.sendMessage("File Complaint", sess);
-    expect(r1.response).toContain("name");
+    expect(r1.response).toMatch(/mobile|number/i);
     
-    const r2 = await chatService.sendMessage("Rohit Sharma", sess);
-    expect(r2.response).toContain("Rohit");
+    const r2 = await chatService.sendMessage("9800000021", sess);
+    expect(r2.response).toContain("name");
+
+    const r3 = await chatService.sendMessage("Rohit Sharma", sess);
+    expect(r3.response).toContain("Rohit");
   });
 
   it('should comply strictly with the Officer Persona guardrails', async () => {

@@ -60,10 +60,13 @@ describe('Workflow Translation Leakage & Audit Test Suite', () => {
     
     // Select File Complaint
     const compRes = await chatService.sendMessage('File Complaint', sess);
-    expect(compRes.response).toContain('नाम जान सकता हूँ'); // Hindi name prompt
+    expect(compRes.response).toContain('मोबाइल नंबर'); // Hindi mobile prompt
+
+    const randomMobile = '9' + Math.floor(100000000 + Math.random() * 900000000).toString();
+    const nameRes = await chatService.sendMessage(randomMobile, sess);
+    expect(nameRes.response).toContain('नाम जान सकता हूँ'); // Hindi name prompt
 
     await chatService.sendMessage('मनोज तिवारी', sess);
-    await chatService.sendMessage('9988776655', sess);
     
     const locRes = await chatService.sendMessage('Lucknow', sess);
     expect(locRes.response).toContain('लखनऊ');
@@ -83,10 +86,13 @@ describe('Workflow Translation Leakage & Audit Test Suite', () => {
     await chatService.sendMessage('english', sess);
     
     const compRes = await chatService.sendMessage('File Complaint', sess);
-    expect(compRes.response).toContain('know your name');
+    expect(compRes.response).toContain('mobile number'); // English mobile prompt
+
+    const randomMobile = '9' + Math.floor(100000000 + Math.random() * 900000000).toString();
+    const nameRes = await chatService.sendMessage(randomMobile, sess);
+    expect(nameRes.response).toContain('know your name'); // English name prompt
 
     await chatService.sendMessage('Manoj Tiwari', sess);
-    await chatService.sendMessage('9988776655', sess);
     
     const locRes = await chatService.sendMessage('Lucknow', sess);
     expect(locRes.response).toContain('Lucknow');

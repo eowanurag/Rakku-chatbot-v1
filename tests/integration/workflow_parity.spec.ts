@@ -24,7 +24,23 @@ describe('Workflow Parity & Integration Validation', () => {
   let intelligence: IntelligenceService;
   let config: ConfigService;
 
-  beforeAll(() => {
+  const cleanup = async () => {
+    const testCitizenIds = (await prisma.citizen.findMany({
+      where: { mobileNumber: { in: ['7878787878'] } }
+    })).map(c => c.id);
+    
+    if (testCitizenIds.length > 0) {
+      await prisma.complaint.deleteMany({ where: { citizenId: { in: testCitizenIds } } });
+      await prisma.verification.deleteMany({ where: { citizenId: { in: testCitizenIds } } });
+      await prisma.characterCertificate.deleteMany({ where: { citizenId: { in: testCitizenIds } } });
+      await prisma.eventPermission.deleteMany({ where: { citizenId: { in: testCitizenIds } } });
+      await prisma.notification.deleteMany({ where: { citizenId: { in: testCitizenIds } } });
+      await prisma.citizenFeedback.deleteMany({ where: { citizenId: { in: testCitizenIds } } });
+      await prisma.citizen.deleteMany({ where: { id: { in: testCitizenIds } } });
+    }
+  };
+
+  beforeAll(async () => {
     prisma = new PrismaService();
     config = new ConfigService();
     validation = new ValidationService();
@@ -35,9 +51,11 @@ describe('Workflow Parity & Integration Validation', () => {
     tracking = new TrackingService(prisma);
     analytics = new AnalyticsService();
     intelligence = new IntelligenceService(prisma);
+    await cleanup();
   });
 
   afterAll(async () => {
+    await cleanup();
     await prisma.$disconnect();
   });
 
@@ -96,7 +114,11 @@ describe('Workflow Parity & Integration Validation', () => {
       const fStep = String(fastApiRes.steps[i]);
       const nStep = String(nestJsRes.steps[i]);
       
-      const profileSteps = ['START', 'IDENTIFY_NAME', 'IDENTIFY_MOBILE', 'IDENTIFY_LOCATION', 'CONFIRM_LOCATION', 'IDENTIFY_ADDRESS', 'CONFIRM_PROFILE', 'PROFILE_VERIFIED'];
+      const profileSteps = [
+        'START', 'IDENTIFY_NAME', 'IDENTIFY_MOBILE', 'IDENTIFY_LOCATION',
+        'CONFIRM_LOCATION', 'IDENTIFY_ADDRESS', 'CONFIRM_PROFILE', 'PROFILE_VERIFIED',
+        'IDENTIFY_MOBILE_FIRST', 'VERIFY_EXISTING_PROFILE'
+      ];
       if (profileSteps.includes(fStep) || profileSteps.includes(nStep)) {
         if (fStep !== nStep) {
           mismatches.push(`Step ${i}: FastAPI=${fStep}, NestJS=${nStep}`);
@@ -130,8 +152,8 @@ describe('Workflow Parity & Integration Validation', () => {
     const inputs = [
       "english",
       "File Complaint",
-      "Manoj Tiwari",
       "7878787878",
+      "Manoj Tiwari",
       "Ayodhya",
       "Confirm",
       "House No 22 Civil Lines",
@@ -152,6 +174,7 @@ describe('Workflow Parity & Integration Validation', () => {
     const sess2 = `test-parity-cmp-nestjs-${Date.now()}`;
 
     const fastApiResult = await runConversation(true, inputs, sess1);
+    await cleanup();
     const nestJsResult = await runConversation(false, inputs, sess2);
 
     compareRuns(fastApiResult, nestJsResult);
@@ -167,8 +190,8 @@ describe('Workflow Parity & Integration Validation', () => {
     const inputs = [
       "english",
       "Tenant Verification",
-      "Manoj Tiwari",
       "7878787878",
+      "Manoj Tiwari",
       "Ayodhya",
       "Confirm",
       "House No 22 Civil Lines",
@@ -185,6 +208,7 @@ describe('Workflow Parity & Integration Validation', () => {
     const sess2 = `test-parity-ver-nestjs-${Date.now()}`;
 
     const fastApiResult = await runConversation(true, inputs, sess1);
+    await cleanup();
     const nestJsResult = await runConversation(false, inputs, sess2);
 
     compareRuns(fastApiResult, nestJsResult);
@@ -199,8 +223,8 @@ describe('Workflow Parity & Integration Validation', () => {
     const inputs = [
       "english",
       "Character Certificate",
-      "Manoj Tiwari",
       "7878787878",
+      "Manoj Tiwari",
       "Ayodhya",
       "Confirm",
       "House No 22 Civil Lines",
@@ -218,6 +242,7 @@ describe('Workflow Parity & Integration Validation', () => {
     const sess2 = `test-parity-cert-nestjs-${Date.now()}`;
 
     const fastApiResult = await runConversation(true, inputs, sess1);
+    await cleanup();
     const nestJsResult = await runConversation(false, inputs, sess2);
 
     compareRuns(fastApiResult, nestJsResult);
@@ -232,8 +257,8 @@ describe('Workflow Parity & Integration Validation', () => {
     const inputs = [
       "english",
       "Event Permission",
-      "Manoj Tiwari",
       "7878787878",
+      "Manoj Tiwari",
       "Ayodhya",
       "Confirm",
       "House No 22 Civil Lines",
@@ -254,6 +279,7 @@ describe('Workflow Parity & Integration Validation', () => {
     const sess2 = `test-parity-event-nestjs-${Date.now()}`;
 
     const fastApiResult = await runConversation(true, inputs, sess1);
+    await cleanup();
     const nestJsResult = await runConversation(false, inputs, sess2);
 
     compareRuns(fastApiResult, nestJsResult);

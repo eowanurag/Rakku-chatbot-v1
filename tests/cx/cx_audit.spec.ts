@@ -64,17 +64,16 @@ describe('Citizen Experience (CX) Quality Audit Test', () => {
 
   it('Stage 2: Profile Collection and Reassurance', async () => {
     const r3 = await chatService.sendMessage("File Complaint", sess);
-    expect(r3.response).toContain("Before we begin");
-    expect(r3.response).toContain("name");
-    expect(r3.response).toContain("assist you properly");
+    expect(r3.response).toContain("enter your mobile number");
+    expect(r3.response).toContain("retrieve your profile");
 
-    const r4 = await chatService.sendMessage("Sunil Dutt", sess);
-    expect(r4.response).toContain("Sunil Dutt");
-    expect(r4.response).toContain("contact you regarding this request");
+    const r4 = await chatService.sendMessage("9876543210", sess);
+    expect(r4.response).toContain("I couldn't find an existing profile");
+    expect(r4.response).toContain("May I know your name");
   });
 
   it('Stage 3: Incident Details & Empathy Check', async () => {
-    await chatService.sendMessage("9876543210", sess);
+    await chatService.sendMessage("Sunil Dutt", sess);
     await chatService.sendMessage("Noida", sess);
     await chatService.sendMessage("Confirm", sess);
     await chatService.sendMessage("Sector 15, Noida - 201301", sess);

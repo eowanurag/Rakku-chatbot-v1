@@ -61,8 +61,9 @@ describe('Full Localization & Translation Leakage Test Suite', () => {
     expect(langSelect.response).toContain('सहायता'); // Hindi welcome message
 
     await chatService.sendMessage('File Complaint', sess);
+    const randomMobile = '9' + Math.floor(100000000 + Math.random() * 900000000).toString();
+    await chatService.sendMessage(randomMobile, sess);
     await chatService.sendMessage('रोहित शर्मा', sess);
-    await chatService.sendMessage('9876543210', sess);
     
     // Test localized location confirmation
     const locRes = await chatService.sendMessage('Lucknow', sess);
@@ -88,8 +89,9 @@ describe('Full Localization & Translation Leakage Test Suite', () => {
     await chatService.sendMessage('hello', sess);
     await chatService.sendMessage('हिंदी', sess);
     await chatService.sendMessage('File Complaint', sess);
+    const randomMobile = '9' + Math.floor(100000000 + Math.random() * 900000000).toString();
+    await chatService.sendMessage(randomMobile, sess);
     await chatService.sendMessage('रोहित शर्मा', sess);
-    await chatService.sendMessage('9876543210', sess);
     await chatService.sendMessage('Lucknow', sess);
     await chatService.sendMessage('Confirm', sess);
     await chatService.sendMessage('मकान नंबर 24, सिविल लाइंस, लखनऊ', sess);

@@ -48,18 +48,55 @@ describe('Profile Confirmation Flow Test', () => {
     );
   });
 
-  afterAll(async () => {
-    await prisma.$disconnect();
+  const getNewSession = () => "profile-flow-" + Math.random().toString(36).substring(7);
+
+  beforeEach(async () => {
+    const testMobiles = [
+      '9800000001', '9800000002', '9800000003', '9800000004', '9800000005',
+      '9800000006', '9800000007', '9800000008', '9800000009', '9800000010'
+    ];
+    const testCitizenIds = (await prisma.citizen.findMany({
+      where: { mobileNumber: { in: testMobiles } }
+    })).map(c => c.id);
+    
+    if (testCitizenIds.length > 0) {
+      await prisma.complaint.deleteMany({ where: { citizenId: { in: testCitizenIds } } });
+      await prisma.verification.deleteMany({ where: { citizenId: { in: testCitizenIds } } });
+      await prisma.characterCertificate.deleteMany({ where: { citizenId: { in: testCitizenIds } } });
+      await prisma.eventPermission.deleteMany({ where: { citizenId: { in: testCitizenIds } } });
+      await prisma.notification.deleteMany({ where: { citizenId: { in: testCitizenIds } } });
+      await prisma.citizenFeedback.deleteMany({ where: { citizenId: { in: testCitizenIds } } });
+      await prisma.citizen.deleteMany({ where: { id: { in: testCitizenIds } } });
+    }
   });
 
-  const getNewSession = () => "profile-flow-" + Math.random().toString(36).substring(7);
+  afterAll(async () => {
+    const testMobiles = [
+      '9800000001', '9800000002', '9800000003', '9800000004', '9800000005',
+      '9800000006', '9800000007', '9800000008', '9800000009', '9800000010'
+    ];
+    const testCitizenIds = (await prisma.citizen.findMany({
+      where: { mobileNumber: { in: testMobiles } }
+    })).map(c => c.id);
+    
+    if (testCitizenIds.length > 0) {
+      await prisma.complaint.deleteMany({ where: { citizenId: { in: testCitizenIds } } });
+      await prisma.verification.deleteMany({ where: { citizenId: { in: testCitizenIds } } });
+      await prisma.characterCertificate.deleteMany({ where: { citizenId: { in: testCitizenIds } } });
+      await prisma.eventPermission.deleteMany({ where: { citizenId: { in: testCitizenIds } } });
+      await prisma.notification.deleteMany({ where: { citizenId: { in: testCitizenIds } } });
+      await prisma.citizenFeedback.deleteMany({ where: { citizenId: { in: testCitizenIds } } });
+      await prisma.citizen.deleteMany({ where: { id: { in: testCitizenIds } } });
+    }
+    await prisma.$disconnect();
+  });
 
   // Test 1: Location -> Confirm -> Address Requested
   it('Test 1: should transition from Location to Confirm Location then ask for Address', async () => {
     const sess = getNewSession();
     await chatService.sendMessage("File Complaint", sess);
+    await chatService.sendMessage("9800000001", sess);
     await chatService.sendMessage("Rohit Sharma", sess);
-    await chatService.sendMessage("9876543210", sess);
     
     // Provide location
     const locRes = await chatService.sendMessage("Lucknow", sess);
@@ -76,8 +113,8 @@ describe('Profile Confirmation Flow Test', () => {
   it('Test 2: should transition to Review Screen after submitting Address', async () => {
     const sess = getNewSession();
     await chatService.sendMessage("File Complaint", sess);
+    await chatService.sendMessage("9800000002", sess);
     await chatService.sendMessage("Rohit Sharma", sess);
-    await chatService.sendMessage("9876543210", sess);
     await chatService.sendMessage("Lucknow", sess);
     await chatService.sendMessage("Confirm", sess);
     
@@ -90,8 +127,8 @@ describe('Profile Confirmation Flow Test', () => {
   it('Test 3: should begin workflow after confirming profile', async () => {
     const sess = getNewSession();
     await chatService.sendMessage("File Complaint", sess);
+    await chatService.sendMessage("9800000003", sess);
     await chatService.sendMessage("Rohit Sharma", sess);
-    await chatService.sendMessage("9876543210", sess);
     await chatService.sendMessage("Lucknow", sess);
     await chatService.sendMessage("Confirm", sess);
     await chatService.sendMessage("Sector 4, Gomti Nagar, Lucknow", sess);
@@ -105,8 +142,8 @@ describe('Profile Confirmation Flow Test', () => {
   it('Test 4: should not store "Confirm" in address field', async () => {
     const sess = getNewSession();
     await chatService.sendMessage("File Complaint", sess);
+    await chatService.sendMessage("9800000004", sess);
     await chatService.sendMessage("Rohit Sharma", sess);
-    await chatService.sendMessage("9876543210", sess);
     await chatService.sendMessage("Lucknow", sess);
     await chatService.sendMessage("Confirm", sess);
     
@@ -119,8 +156,8 @@ describe('Profile Confirmation Flow Test', () => {
   it('Test 5: should progress workflow and not loop when user types "yes"', async () => {
     const sess = getNewSession();
     await chatService.sendMessage("File Complaint", sess);
+    await chatService.sendMessage("9800000005", sess);
     await chatService.sendMessage("Rohit Sharma", sess);
-    await chatService.sendMessage("9876543210", sess);
     await chatService.sendMessage("Lucknow", sess);
     await chatService.sendMessage("Confirm", sess);
     await chatService.sendMessage("Sector 4, Gomti Nagar, Lucknow", sess);
@@ -135,8 +172,8 @@ describe('Profile Confirmation Flow Test', () => {
   it('Test 6: should not corrupt address if user types "Confirm" multiple times', async () => {
     const sess = getNewSession();
     await chatService.sendMessage("File Complaint", sess);
+    await chatService.sendMessage("9800000006", sess);
     await chatService.sendMessage("Rohit Sharma", sess);
-    await chatService.sendMessage("9876543210", sess);
     await chatService.sendMessage("Lucknow", sess);
     await chatService.sendMessage("Confirm", sess);
     
@@ -161,8 +198,8 @@ describe('Profile Confirmation Flow Test', () => {
   it('Test 7: should return to location editing workflow when "change location" is typed', async () => {
     const sess = getNewSession();
     await chatService.sendMessage("File Complaint", sess);
+    await chatService.sendMessage("9800000007", sess);
     await chatService.sendMessage("Rohit Sharma", sess);
-    await chatService.sendMessage("9876543210", sess);
     await chatService.sendMessage("Lucknow", sess);
     await chatService.sendMessage("Confirm", sess);
     await chatService.sendMessage("Sector 4, Gomti Nagar, Lucknow", sess);
@@ -175,8 +212,8 @@ describe('Profile Confirmation Flow Test', () => {
   it('Test 8: should open modify menu and not restart workflow', async () => {
     const sess = getNewSession();
     await chatService.sendMessage("File Complaint", sess);
+    await chatService.sendMessage("9800000008", sess);
     await chatService.sendMessage("Rohit Sharma", sess);
-    await chatService.sendMessage("9876543210", sess);
     await chatService.sendMessage("Lucknow", sess);
     await chatService.sendMessage("Confirm", sess);
     await chatService.sendMessage("Sector 4, Gomti Nagar, Lucknow", sess);
@@ -199,11 +236,11 @@ describe('Profile Confirmation Flow Test', () => {
     await chatService.sendMessage("english", sess);
     await chatService.sendMessage("File Complaint", sess);
     
-    const nameRes = await chatService.sendMessage("Rohit Sharma", sess);
-    expect(nameRes._debug.step).toBe("IDENTIFY_MOBILE");
+    const mobRes = await chatService.sendMessage("9800000010", sess);
+    expect(mobRes._debug.step).toBe("IDENTIFY_NAME");
     
-    const mobRes = await chatService.sendMessage("9876543210", sess);
-    expect(mobRes._debug.step).toBe("IDENTIFY_LOCATION");
+    const nameRes = await chatService.sendMessage("Rohit Sharma", sess);
+    expect(nameRes._debug.step).toBe("IDENTIFY_LOCATION");
     
     const locRes = await chatService.sendMessage("Lucknow", sess);
     expect(locRes._debug.step).toBe("CONFIRM_LOCATION");
@@ -220,7 +257,7 @@ describe('Profile Confirmation Flow Test', () => {
     // Verify no missing fields and no corruption
     const state = await chatService.getOrCreateSession(sess);
     expect(state.citizen.fullName).toBe("Rohit Sharma");
-    expect(state.citizen.mobileNumber).toBe("9876543210");
+    expect(state.citizen.mobileNumber).toBe("9800000010");
     expect(state.citizen.city).toBe("Lucknow");
     expect(state.citizen.addressLine1).toBe("House 12, Civil Lines");
   });

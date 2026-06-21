@@ -54,27 +54,28 @@ describe('Citizen Frustration Test', () => {
   it('should handle citizen frustration gracefully and maintain state', async () => {
     const sess = "frust-sess-" + Math.random().toString(36).substring(7);
 
-    // Initialize session to profile name collection
+    // Initialize session to profile mobile collection
     await chatService.sendMessage("hello", sess);
     await chatService.sendMessage("english", sess);
-    const namePrompt = await chatService.sendMessage("File Complaint", sess);
+    const mobilePrompt = await chatService.sendMessage("File Complaint", sess);
+    expect(mobilePrompt.response).toContain("please enter your mobile number");
+
+    // 1. Test "why do you need" frustration trigger during mobile collection
+    const rWhy = await chatService.sendMessage("why do you need my mobile number?", sess);
+    expect(rWhy.response).toContain("As a digital assistant, I require this information to comply with official UP Police records");
+    expect(rWhy.response).toContain("please enter your mobile number");
+
+    // Send mobile to advance (step becomes IDENTIFY_NAME)
+    const namePrompt = await chatService.sendMessage("9898989898", sess);
     expect(namePrompt.response).toContain("Before we begin, may I know your name");
 
-    // 1. Test "why do you need" frustration trigger during name collection
-    const rWhy = await chatService.sendMessage("why do you need my name?", sess);
-    expect(rWhy.response).toContain("As a digital assistant, I require this information to comply with official UP Police records");
-    expect(rWhy.response).toContain("Before we begin, may I know your name");
+    // 2. Test "I don't know" during name collection
+    const rDontKnow = await chatService.sendMessage("i don't know", sess);
+    expect(rDontKnow.response).toContain("That is no problem. If you do not have this information");
+    expect(rDontKnow.response).toContain("Before we begin, may I know your name");
 
     // Send name to advance
     await chatService.sendMessage("Ram Charan", sess);
-
-    // 2. Test "I don't know" during mobile collection
-    const rDontKnow = await chatService.sendMessage("i don't know", sess);
-    expect(rDontKnow.response).toContain("That is no problem. If you do not have this information");
-    expect(rDontKnow.response).toContain("share your mobile number");
-
-    // Send mobile to advance
-    await chatService.sendMessage("9898989898", sess);
 
     // 3. Test "I already told you" during location collection
     const rAlreadyTold = await chatService.sendMessage("i already told you my address is Noida", sess);

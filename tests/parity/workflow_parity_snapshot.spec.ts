@@ -46,6 +46,23 @@ describe('Workflow Parity Snapshot Tests', () => {
     );
   });
 
+  beforeEach(async () => {
+    const testMobiles = ['7878787878'];
+    const testCitizenIds = (await prisma.citizen.findMany({
+      where: { mobileNumber: { in: testMobiles } }
+    })).map(c => c.id);
+    
+    if (testCitizenIds.length > 0) {
+      await prisma.complaint.deleteMany({ where: { citizenId: { in: testCitizenIds } } });
+      await prisma.verification.deleteMany({ where: { citizenId: { in: testCitizenIds } } });
+      await prisma.characterCertificate.deleteMany({ where: { citizenId: { in: testCitizenIds } } });
+      await prisma.eventPermission.deleteMany({ where: { citizenId: { in: testCitizenIds } } });
+      await prisma.notification.deleteMany({ where: { citizenId: { in: testCitizenIds } } });
+      await prisma.citizenFeedback.deleteMany({ where: { citizenId: { in: testCitizenIds } } });
+      await prisma.citizen.deleteMany({ where: { id: { in: testCitizenIds } } });
+    }
+  });
+
   afterAll(async () => {
     await prisma.$disconnect();
   });
@@ -64,8 +81,8 @@ describe('Workflow Parity Snapshot Tests', () => {
     const responses = await runInputs([
       "english",
       "File Complaint",
-      "Manoj Tiwari",
       "7878787878",
+      "Manoj Tiwari",
       "Ayodhya",
       "Confirm",
       "House No 22 Civil Lines",
