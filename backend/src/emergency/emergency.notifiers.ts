@@ -47,7 +47,7 @@ Please open the Rakku Admin Dashboard.`;
       return true;
     } catch (e) {
       this.logger.error(`Telegram notification failed: ${e.message}`);
-      throw e;
+      return false;
     }
   }
 }
@@ -59,9 +59,14 @@ export class EmailNotifier implements EmergencyNotifier {
   async notify(alert: EmergencyAlert, events?: EmergencyAlertEvent[]): Promise<boolean> {
     if (process.env.EMAIL_ENABLED !== 'true') return true;
     
+    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+      this.logger.warn('Email credentials (SMTP_USER / SMTP_PASS) missing, skipping notification.');
+      return false;
+    }
+
     // Stub implementation as per V1 prototype requirements 
     // Usually uses nodemailer here
-    this.logger.log(`Simulating Email sent to ${process.env.ALERT_EMAIL || 'rakkuadmin@gmail.com'} for alert ${alert.referenceNumber}`);
+    this.logger.log(`Simulating Email sent from ${process.env.SMTP_FROM || 'Rakku'} to ${process.env.ALERT_EMAIL || 'rakkuadmin@gmail.com'} for alert ${alert.referenceNumber}`);
     
     return true;
   }
