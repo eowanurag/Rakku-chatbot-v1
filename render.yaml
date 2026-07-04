@@ -1,0 +1,35 @@
+services:
+  - type: web
+    name: rakku-backend
+    env: docker
+    dockerContext: backend
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: PORT
+        value: 3001
+      - key: DATABASE_URL
+        sync: false
+      - key: AI_SERVICE_URL
+        sync: false
+
+  - type: web
+    name: rakku-frontend
+    env: docker
+    dockerContext: frontend
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: PORT
+        value: 3000
+      - key: NEXT_PUBLIC_BACKEND_URL
+        value: https://rakku-backend.onrender.com/api # You will need to update this after the backend deploys if the URL is different
+
+  - type: web
+    name: rakku-ai-service
+    env: docker
+    dockerContext: ai-service
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: PORT
+        value: 8000
+      - key: GEMINI_API_KEY
+        sync: false
