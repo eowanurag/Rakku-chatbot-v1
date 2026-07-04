@@ -31,6 +31,7 @@ model Citizen {
   permissions          EventPermission[]
   verifications        Verification[]
   notifications        Notification[]
+  emergencyAlerts      EmergencyAlert[]
 }
 
 model Complaint {
@@ -470,4 +471,116 @@ model SubmissionFingerprint {
   @@index([createdAt])
 }
 
+// --- EMERGENCY ALERT PLATFORM ---
+
+enum EmergencyStatus {
+  ACTIVE
+  ACKNOWLEDGED
+  RESOLVED
+}
+
+enum EmergencySeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum EmergencyLocationSource {
+  GPS
+  MANUAL
+  PROFILE
+  IP
+  UNKNOWN
+}
+
+enum EmergencyLocationConfidence {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum EmergencyEventType {
+  ALERT_CREATED
+  GPS_UPDATED
+  LOCATION_UPDATED
+  CONTACT_UPDATED
+  SOS_TRIGGERED_AGAIN
+  ACKNOWLEDGED
+  RESOLVED
+  ADMIN_NOTE
+  NOTIFICATION_SENT
+  NOTIFICATION_FAILED
+}
+
+enum EmergencyType {
+  UNKNOWN
+  MEDICAL
+  CRIME
+  ACCIDENT
+  FIRE
+  WOMEN_SAFETY
+  CHILD
+  OTHER
+}
+
+enum EmergencyTriggerSource {
+  CHAT
+  SOS_BUTTON
+  VOICE
+  API
+  UNKNOWN
+}
+
+model EmergencyAlert {
+  id                      String   @id @default(uuid())
+  referenceNumber         String   @unique
+  externalReference       String?
+
+  citizenId               String?
+  citizen                 Citizen? @relation(fields: [citizenId], references: [id])
+
+  citizenSnapshot         Json?
+  citizenSnapshotVersion  Int      @default(1)
+
+  emergencyType           EmergencyType @default(UNKNOWN)
+  triggerSource           EmergencyTriggerSource @default(SOS_BUTTON)
+  severity                EmergencySeverity @default(CRITICAL)
+
+  locationSource          EmergencyLocationSource @default(UNKNOWN)
+  locationConfidence      EmergencyLocationConfidence?
+
+  locationText            String?
+  latitude                Float?
+  longitude               Float?
+
+  ipAddress               String?
+  ipApproxLocation        String?
+
+  policeStationId         String?
+
+  status                  EmergencyStatus @default(ACTIVE)
+
+  sosPressCount           Int           @default(1)
+  lastNotificationAt      DateTime?
+
+  assignedToAdminId       String?
+  assignedAt              DateTime?
+  adminAcknowledged       Boolean       @default(false)
+
+  createdAt               DateTime      @default(now())
+  updatedAt               DateTime      @updatedAt
+
+  events                  EmergencyAlertEvent[]
+}
+
+model EmergencyAlertEvent {
+  id          String   @id @default(uuid())
+  alertId     String
+  eventType   EmergencyEventType
+  message     String?
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  alert       EmergencyAlert @relation(fields:[alertId], references:[id])
+}
 

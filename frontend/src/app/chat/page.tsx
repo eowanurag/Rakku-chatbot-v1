@@ -14,10 +14,11 @@ import {
   CornerDownLeft 
 } from "lucide-react";
 import DOMPurify from "dompurify";
-import { ChatService } from "../../services/api";
+import { ChatService, EmergencyService } from "../../services/api";
 import { useLanguage } from "@/context/LanguageContext";
 import LanguageSelector from "@/components/chat/LanguageSelector";
 import LanguageBadge from "@/components/chat/LanguageBadge";
+import { io } from "socket.io-client";
 
 // Modular Redesign Components
 import RakkuFloatingAssistant from "../../components/chat/RakkuFloatingAssistant";
@@ -61,6 +62,9 @@ function ChatContent() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [sosLoading, setSosLoading] = useState(false);
+  const [sosTriggered, setSosTriggered] = useState(false);
+  const [activeAlertId, setActiveAlertId] = useState<string | null>(null);
   const [waitingForManualLocation, setWaitingForManualLocation] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
 
@@ -233,24 +237,95 @@ function ChatContent() {
     }
   };
 
-  // Initialize Session ID and request location coordinates
+  // Initialize Session ID and Socket for Live Emergency Status Updates
   useEffect(() => {
     setSessionId(`session-${Math.random().toString(36).substring(7)}`);
 
-    if (typeof window !== "undefined" && navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setCoords({
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-          });
-        },
-        (error) => {
-          console.warn("Location permission denied or unavailable.");
+    const socket = io(`${BACKEND_URL.replace('/api', '')}/emergency`, {
+      transports: ["websocket"]
+    });
+
+    socket.on("alert_updated", (alert) => {
+      // Look for updates if this is the active alert
+      if (activeAlertId && alert.id === activeAlertId) {
+        if (alert.status === "ACKNOWLEDGED") {
+          setMessages(prev => [...prev, {
+            role: "assistant",
+            text: `✅ **Control Room Update:** Your emergency alert (${alert.referenceNumber}) has been acknowledged by the control desk. Our team is coordinating the response.`
+          }]);
+        } else if (alert.status === "RESOLVED") {
+          setMessages(prev => [...prev, {
+            role: "assistant",
+            text: `✅ **Control Room Update:** Your emergency request (${alert.referenceNumber}) has been marked as resolved.`
+          }]);
+          setSosTriggered(false);
+          setActiveAlertId(null);
         }
-      );
-    }
-  }, []);
+      }
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [activeAlertId]);
+
+  const handleSOS = async () => {
+    if (sosLoading) return;
+    setSosLoading(true);
+    
+    // Immediately raise alert (fire and forget)
+    EmergencyService.triggerSos("anonymous_citizen", "SOS_BUTTON", { fullName: "Anonymous Citizen", mobileNumber: "Pending" })
+      .then(async (res) => {
+        setSosTriggered(true);
+        if (res.isDuplicate) {
+          setMessages(prev => [...prev, {
+            role: "assistant",
+            text: `⚠️ **Update:** Emergency alert ${res.referenceNumber} escalated again. Priority has been elevated.`
+          }]);
+          return;
+        }
+
+        // Store real ID from backend in future versions, for now backend should return the ID
+        // For V1 we fetch the active alert shortly after to bind the socket if needed
+        EmergencyService.getActiveAlerts().then(alerts => {
+          const matched = alerts.find((a: any) => a.referenceNumber === res.referenceNumber);
+          if (matched) setActiveAlertId(matched.id);
+        });
+
+        setMessages(prev => [...prev, {
+          role: "assistant",
+          text: `🚨 **Emergency Alert Sent Successfully**\n\nYour emergency alert has been received.\n\nReference Number: **${res.referenceNumber}**\n\nOur response team has been notified. If it is safe, keep your phone nearby and keep this page open.\n\n*(Please allow location access so we can pinpoint your coordinates)*`
+        }]);
+        updateAvatarAndSpeech("ERROR", "Emergency SOS triggered! Alerting control room...");
+
+        // After raising alert, request GPS to enrich
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            async (position) => {
+              await EmergencyService.updateLocation(res.referenceNumber, position.coords.latitude, position.coords.longitude, "GPS");
+              setMessages(prev => [...prev, {
+                role: "assistant",
+                text: `✅ **Location Updated:** GPS coordinates successfully attached to alert ${res.referenceNumber}.`
+              }]);
+            },
+            (err) => {
+              console.warn("GPS failed during SOS", err);
+              setMessages(prev => [...prev, {
+                role: "assistant",
+                text: `⚠️ **Location Failed:** Could not get GPS. Please type your exact address or landmark immediately.`
+              }]);
+            },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+          );
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to trigger SOS", err);
+      })
+      .finally(() => {
+        setSosLoading(false);
+      });
+  };
 
   // Handle responsive sidebar open/close based on viewport width
   useEffect(() => {
@@ -828,6 +903,23 @@ function ChatContent() {
           </div>
         </footer>
       </div>
+
+      {/* Floating Unmistakable SOS Button */}
+      <button
+        onClick={handleSOS}
+        disabled={sosLoading}
+        className={`fixed bottom-24 right-4 md:right-8 z-50 p-4 rounded-full font-black text-white shadow-2xl transition-all flex items-center justify-center border-4 ${
+          sosTriggered 
+            ? "bg-red-800 border-red-900 cursor-not-allowed scale-95" 
+            : "bg-red-600 hover:bg-red-500 border-red-400 hover:scale-105 hover:shadow-red-500/50 animate-[pulse_2s_cubic-bezier(0.4,0,0.6,1)_infinite]"
+        }`}
+        style={{ width: '80px', height: '80px' }}
+      >
+        <div className="flex flex-col items-center">
+          <AlertTriangle className="w-8 h-8 mb-1" />
+          <span className="text-[10px] uppercase tracking-wider">{sosTriggered ? "SENT" : "SOS"}</span>
+        </div>
+      </button>
 
       {/* Floating Welcome Overlay Greeting Card */}
       {showWelcomeCard && (

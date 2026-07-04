@@ -20,6 +20,7 @@ import {
   CertificateService, 
   EventService 
 } from "../../services/api";
+import EmergencyAlertsWidget from "./EmergencyAlertsWidget";
 
 type TabType = "complaints" | "verifications" | "certificates" | "events";
 
@@ -169,6 +170,9 @@ export default function AdminPage() {
           </button>
         </div>
       </div>
+
+      {/* EMERGENCY ALERTS WIDGET */}
+      <EmergencyAlertsWidget />
 
       {/* Stats Board */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">

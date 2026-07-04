@@ -42,7 +42,7 @@ import { IntelligenceService } from './citizen-assistance/intelligence.service';
 import { LocalizationModule } from './localization/localization.module';
 import { JurisdictionRoutingModule } from './jurisdiction-routing/jurisdiction-routing.module';
 import { NotificationModule } from './notification/notification.module';
-
+import { EmergencyModule } from './emergency/emergency.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -57,6 +57,7 @@ import { NotificationModule } from './notification/notification.module';
     LocalizationModule,
     JurisdictionRoutingModule,
     NotificationModule,
+    EmergencyModule,
   ],
   controllers: [
     ComplaintController,
