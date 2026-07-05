@@ -311,7 +311,7 @@ export default function ChatMessage({
               </button>
               
               <button
-                onClick={() => onOptionClick(translate("SERVICE_EMERGENCY") === "आपातकालीन सहायता" ? "🆘 आपातकालीन सहायता" : "Emergency Contacts")}
+                onClick={() => onOptionClick(translate("SERVICE_EMERGENCY") === "आपातकालीन सहायता" ? "🆘 आपातकालीन सहायता" : "Emergency Help")}
                 className="p-3 bg-slate-900/60 hover:bg-slate-850 border border-slate-800 hover:border-police-gold rounded-xl transition-all flex flex-col items-center justify-center text-center space-y-1.5 group cursor-pointer"
               >
                 <span className="text-xl animate-pulse">🆘</span>

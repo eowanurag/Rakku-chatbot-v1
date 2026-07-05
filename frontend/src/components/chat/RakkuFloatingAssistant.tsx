@@ -92,7 +92,7 @@ export default function RakkuFloatingAssistant({
               </button>
 
               <button
-                onClick={() => onOptionClick(translate("SERVICE_EMERGENCY") === "आपातकालीन सहायता" ? "🆘 आपातकालीन सहायता" : "Emergency Contacts")}
+                onClick={() => onOptionClick(translate("SERVICE_EMERGENCY") === "आपातकालीन सहायता" ? "🆘 आपातकालीन सहायता" : "Emergency Help")}
                 className="py-2 px-3 bg-slate-900/60 hover:bg-slate-800 border border-slate-850 border-red-900/30 hover:border-red-500 rounded-xl transition-all flex items-center space-x-2 text-[11px] font-bold text-slate-300 group cursor-pointer"
               >
                 <span className="animate-pulse">🆘</span>
