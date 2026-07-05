@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { EmergencyAlert, EmergencyAlertEvent } from '@prisma/client';
 import axios from 'axios';
-import * as nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 import { EmergencyGateway } from './emergency.gateway';
 
 export interface EmergencyNotifier {
@@ -60,21 +60,13 @@ export class EmailNotifier implements EmergencyNotifier {
   async notify(alert: EmergencyAlert, events?: EmergencyAlertEvent[]): Promise<boolean> {
     if (process.env.EMAIL_ENABLED !== 'true') return true;
     
-    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-      this.logger.warn('Email credentials (SMTP_USER / SMTP_PASS) missing, skipping notification.');
+    if (!process.env.RESEND_API_KEY) {
+      this.logger.warn('RESEND_API_KEY missing, skipping email notification.');
       return false;
     }
 
     try {
-      const transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST || 'smtp.gmail.com',
-        port: parseInt(process.env.SMTP_PORT || '587'),
-        secure: process.env.SMTP_SECURE === 'true',
-        auth: {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASS,
-        },
-      });
+      const resend = new Resend(process.env.RESEND_API_KEY);
 
       const message = `
       <h2>🚨 NEW SOS ALERT</h2>
@@ -91,17 +83,21 @@ export class EmailNotifier implements EmergencyNotifier {
       <p>Please log in to the Rakku Admin Dashboard immediately.</p>
       `;
 
-      await transporter.sendMail({
-        from: process.env.SMTP_FROM || 'Rakku Emergency <rakkuadmin@gmail.com>',
+      const response = await resend.emails.send({
+        from: 'Rakku Emergency <onboarding@resend.dev>',
         to: process.env.ALERT_EMAIL || 'rakkuadmin@gmail.com',
         subject: `🚨 URGENT: SOS Alert ${alert.referenceNumber}`,
         html: message,
       });
 
-      this.logger.log(`Email successfully sent for alert ${alert.referenceNumber}`);
+      if (response.error) {
+        throw new Error(response.error.message);
+      }
+
+      this.logger.log(`Email successfully sent via Resend for alert ${alert.referenceNumber}`);
       return true;
     } catch (e) {
-      this.logger.error(`Email notification failed: ${e.message}`);
+      this.logger.error(`Resend notification failed: ${e.message}`);
       return false;
     }
   }
