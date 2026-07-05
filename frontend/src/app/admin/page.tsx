@@ -21,9 +21,11 @@ import {
   CertificateService, 
   EventService 
 } from "../../services/api";
+import ThemeToggle from "../../components/ui/ThemeToggle";
 import EmergencyAlertsWidget from "./EmergencyAlertsWidget";
+import AdminIntelligenceView from "./AdminIntelligenceView";
 
-type TabType = "complaints" | "verifications" | "certificates" | "events";
+type TabType = "complaints" | "verifications" | "certificates" | "events" | "intelligence";
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<TabType>("complaints");
@@ -244,6 +246,9 @@ export default function AdminPage() {
             <button onClick={() => {setActiveTab("events"); setSearchQuery("");}} className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-semibold transition-all ${activeTab === 'events' ? 'bg-blue-600 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
               <CalendarDays className="w-5 h-5" /> <span>Events</span>
             </button>
+            <button onClick={() => {setActiveTab("intelligence"); setSearchQuery("");}} className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-semibold transition-all mt-2 ${activeTab === 'intelligence' ? 'bg-amber-500/10 text-amber-600 dark:text-amber-500' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
+              <span className="w-5 h-5 flex items-center justify-center">🧠</span> <span>Intelligence</span>
+            </button>
           </div>
           
           <div className="mt-auto p-4">
@@ -257,8 +262,14 @@ export default function AdminPage() {
         {/* MAIN WORKSPACE */}
         <main className="flex-1 flex flex-col overflow-y-auto p-6 bg-slate-50 dark:bg-slate-950 relative">
           
-          {/* Analytics Cards */}
-          <div className="grid grid-cols-4 gap-4 mb-6">
+          {activeTab === 'intelligence' ? (
+            <div className="flex-1 overflow-hidden -m-6 border-b border-slate-200 dark:border-slate-800">
+              <AdminIntelligenceView />
+            </div>
+          ) : (
+            <>
+              {/* Analytics Cards */}
+              <div className="grid grid-cols-4 gap-4 mb-6">
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-32 h-32 bg-[#3B82F6]/5 rounded-full -translate-y-1/2 translate-x-1/2 group-hover:bg-[#3B82F6]/10 transition-colors"></div>
               <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mb-1">Total Complaints</p>
@@ -379,6 +390,8 @@ export default function AdminPage() {
               </div>
             )}
           </div>
+          </>
+          )}
           
           {/* Footer Sync Status */}
           <div className="mt-4 flex items-center justify-between text-[10px] font-bold text-slate-500 uppercase tracking-widest border-t border-slate-200 dark:border-slate-800 pt-3">
