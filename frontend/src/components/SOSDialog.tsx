@@ -230,14 +230,14 @@ const SOSDialog: React.FC<SOSDialogProps> = ({ activeAlertId, initialReferenceNu
     <div className="fixed inset-0 z-[100] bg-black/60 flex items-center justify-center p-4">
       <div className="bg-slate-900 border border-slate-700 shadow-2xl rounded-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[90vh]">
         
-        <div className={`p-4 flex items-center justify-between ${isCancelled ? 'bg-slate-800' : 'bg-red-950/80 border-b border-red-900'}`}>
+        <div className={`p-4 flex items-center justify-between ${isCancelled ? 'bg-slate-800' : 'bg-gradient-to-r from-red-600 to-red-800 border-b border-red-900 shadow-md'}`}>
           <div className="flex items-center space-x-3">
-            <ShieldAlert className={`w-6 h-6 ${isCancelled ? 'text-slate-400' : 'text-red-500 animate-pulse'}`} />
-            <h2 className="text-lg font-bold text-white tracking-wide">
+            <ShieldAlert className={`w-6 h-6 ${isCancelled ? 'text-slate-400' : 'text-white animate-pulse'}`} />
+            <h2 className="text-lg font-bold text-white tracking-wide drop-shadow-md">
               {isCancelled ? 'Alert Cancelled' : '🚨 Emergency Alert Sent'}
             </h2>
           </div>
-          <button onClick={onClose} className="p-2 text-slate-400 hover:text-white rounded-full hover:bg-slate-800 transition">
+          <button onClick={onClose} className={`p-2 rounded-full transition ${isCancelled ? 'text-slate-400 hover:text-white hover:bg-slate-700' : 'text-red-100 hover:text-white hover:bg-red-900/50'}`}>
             <XCircle className="w-6 h-6" />
           </button>
         </div>
@@ -368,20 +368,31 @@ const SOSDialog: React.FC<SOSDialogProps> = ({ activeAlertId, initialReferenceNu
                 <span className="text-sm font-bold text-slate-300">Reporting for family/friend?</span>
               </label>
 
-              <div className="flex space-x-2">
+              <div className="flex flex-col space-y-2">
                 <input
                   type="tel"
                   value={mobileNumber}
                   onChange={(e) => setMobileNumber(e.target.value)}
-                  placeholder="Alternate Mobile No."
-                  className="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-red-500 transition-colors"
+                  placeholder={isForOther ? "Family/Friend Mobile No." : "Your Mobile No."}
+                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-red-500 transition-colors"
                 />
+                
+                {isForOther && (
+                  <input
+                    type="text"
+                    value={manualLocation}
+                    onChange={(e) => setManualLocation(e.target.value)}
+                    placeholder="Location of family/friend"
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-red-500 transition-colors"
+                  />
+                )}
+                
                 <button 
                   onClick={handleUpdateDetails}
                   disabled={loading || (!mobileNumber.trim() && !isForOther)}
-                  className="px-4 bg-red-600 hover:bg-red-500 disabled:bg-slate-700 text-white rounded-xl font-bold text-sm transition"
+                  className="w-full py-3 bg-red-600 hover:bg-red-500 disabled:bg-slate-700 text-white rounded-xl font-bold text-sm transition shadow-lg active:scale-95"
                 >
-                  Save
+                  Save Additional Details
                 </button>
               </div>
             </div>
