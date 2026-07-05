@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useEmergencySocket, EmergencyAlertData } from '../../hooks/useEmergencySocket';
 import { EmergencyService } from '../../services/api';
-import { MapPin, Crosshair, XCircle, AlertTriangle, CheckCircle, ShieldAlert } from 'lucide-react';
+import { MapPin, Crosshair, XCircle, AlertTriangle, CheckCircle, ShieldAlert, Clock, LayoutDashboard, Send, Mail } from 'lucide-react';
 
 interface SOSDialogProps {
   activeAlertId: string | null;
@@ -13,12 +13,13 @@ interface SOSDialogProps {
 const SOSDialog: React.FC<SOSDialogProps> = ({ activeAlertId, initialReferenceNumber, backendUrl, onClose }) => {
   const { liveAlert, setLiveAlert } = useEmergencySocket(backendUrl, activeAlertId);
   const [loading, setLoading] = useState(false);
-  const [gpsLoading, setGpsLoading] = useState(false);
-  const [locationText, setLocationText] = useState('');
+  const [gpsLoading, setGpsLoading] = useState(true);
+  const [gpsDenied, setGpsDenied] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [events, setEvents] = useState<any[]>([]);
+  const [elapsed, setElapsed] = useState(0);
 
-  // Fallback state if socket hasn't connected yet but we know the reference
   const currentAlert = liveAlert || {
     id: activeAlertId || '',
     referenceNumber: initialReferenceNumber || 'Pending...',
@@ -32,9 +33,67 @@ const SOSDialog: React.FC<SOSDialogProps> = ({ activeAlertId, initialReferenceNu
   const isResolved = currentAlert.status === 'RESOLVED';
   const isActive = currentAlert.status === 'ACTIVE' && !isAcknowledged;
 
+  const initializedRef = useRef(false);
+
+  useEffect(() => {
+    if (initializedRef.current || !currentAlert.id) return;
+    initializedRef.current = true;
+
+    // Fetch full alert for delivery events
+    fetch(`${backendUrl}/emergency/${currentAlert.id}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.events) setEvents(data.events);
+      })
+      .catch(console.error);
+
+    // Auto GPS Request
+    if (!currentAlert.latitude && !isCancelled && !isResolved) {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          async (position) => {
+            try {
+              await EmergencyService.updateLocation(currentAlert.id, position.coords.latitude, position.coords.longitude, 'GPS');
+              setGpsLoading(false);
+              setLiveAlert(prev => prev ? { ...prev, latitude: position.coords.latitude, longitude: position.coords.longitude } : null);
+            } catch (e: any) {
+              setGpsDenied(true);
+              setGpsLoading(false);
+            }
+          },
+          (err) => {
+            setGpsDenied(true);
+            setGpsLoading(false);
+          },
+          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        );
+      } else {
+        setGpsDenied(true);
+        setGpsLoading(false);
+      }
+    } else {
+      setGpsLoading(false);
+    }
+  }, [currentAlert.id]);
+
+  useEffect(() => {
+    const start = new Date(currentAlert.createdAt).getTime();
+    const timer = setInterval(() => {
+      setElapsed(Math.max(0, Math.floor((Date.now() - start) / 1000)));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [currentAlert.createdAt]);
+
+  const formatTime = (secs: number) => {
+    const m = Math.floor(secs / 60).toString().padStart(2, '0');
+    const s = (secs % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
+  };
+
   const handleShareGPS = () => {
     if (gpsLoading || isCancelled || isResolved) return;
     setGpsLoading(true);
+    setGpsDenied(false);
     
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -42,23 +101,20 @@ const SOSDialog: React.FC<SOSDialogProps> = ({ activeAlertId, initialReferenceNu
           try {
             await EmergencyService.updateLocation(currentAlert.id, position.coords.latitude, position.coords.longitude, 'GPS');
             setGpsLoading(false);
-            if (liveAlert) {
-              setLiveAlert({ ...liveAlert, latitude: position.coords.latitude, longitude: position.coords.longitude });
-            }
+            setLiveAlert(prev => prev ? { ...prev, latitude: position.coords.latitude, longitude: position.coords.longitude } : null);
           } catch (e: any) {
             setErrorMsg(e.message || 'Failed to update location');
             setGpsLoading(false);
+            setGpsDenied(true);
           }
         },
         (err) => {
-          setErrorMsg('Location permission denied or unavailable. Please type your location.');
+          setErrorMsg('Location permission denied. Please allow it in settings.');
           setGpsLoading(false);
+          setGpsDenied(true);
         },
         { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
       );
-    } else {
-      setErrorMsg('Geolocation is not supported by your browser.');
-      setGpsLoading(false);
     }
   };
 
@@ -66,16 +122,13 @@ const SOSDialog: React.FC<SOSDialogProps> = ({ activeAlertId, initialReferenceNu
     if (loading || isCancelled || isResolved) return;
     setLoading(true);
     try {
-      // EmergencyService.updateEmergencyType might not exist in api.ts, I'll assume we can call the endpoint directly or use fetch
       const res = await fetch(`${backendUrl}/emergency/${currentAlert.id}/emergency-type`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ emergencyType: type })
       });
       if (!res.ok) throw new Error('Failed to update type');
-      if (liveAlert) {
-        setLiveAlert({ ...liveAlert, emergencyType: type });
-      }
+      setLiveAlert(prev => prev ? { ...prev, emergencyType: type } : null);
     } catch (e: any) {
       setErrorMsg(e.message || 'Error updating emergency type');
     } finally {
@@ -91,9 +144,7 @@ const SOSDialog: React.FC<SOSDialogProps> = ({ activeAlertId, initialReferenceNu
         method: 'PATCH'
       });
       if (!res.ok) throw new Error('Failed to cancel alert');
-      if (liveAlert) {
-        setLiveAlert({ ...liveAlert, status: 'CANCELLED' });
-      }
+      setLiveAlert(prev => prev ? { ...prev, status: 'CANCELLED' } : null);
     } catch (e: any) {
       setErrorMsg(e.message || 'Error cancelling alert');
     } finally {
@@ -102,12 +153,39 @@ const SOSDialog: React.FC<SOSDialogProps> = ({ activeAlertId, initialReferenceNu
     }
   };
 
-  const getStatusBadge = () => {
-    if (isCancelled) return <span className="bg-slate-700 text-slate-300 px-3 py-1 rounded-full font-bold text-sm flex items-center"><XCircle className="w-4 h-4 mr-2"/> CANCELLED</span>;
-    if (isResolved) return <span className="bg-green-600/20 text-green-400 border border-green-500/50 px-3 py-1 rounded-full font-bold text-sm flex items-center"><CheckCircle className="w-4 h-4 mr-2"/> RESOLVED</span>;
-    if (isAcknowledged) return <span className="bg-yellow-500/20 text-yellow-400 border border-yellow-500/50 px-3 py-1 rounded-full font-bold text-sm flex items-center animate-pulse"><AlertTriangle className="w-4 h-4 mr-2"/> ACKNOWLEDGED</span>;
-    return <span className="bg-red-600/20 text-red-500 border border-red-500/50 px-3 py-1 rounded-full font-bold text-sm flex items-center animate-pulse"><AlertTriangle className="w-4 h-4 mr-2"/> ACTIVE</span>;
-  };
+  const deliveredDash = events.some(e => e.eventType === 'NOTIFICATION_SENT' && e.metadata?.channel === 'Dashboard');
+  const deliveredTg = events.some(e => e.eventType === 'NOTIFICATION_SENT' && e.metadata?.channel === 'Telegram');
+  const failedTg = events.some(e => e.eventType === 'NOTIFICATION_FAILED' && e.metadata?.channel === 'Telegram');
+  const deliveredEmail = events.some(e => e.eventType === 'NOTIFICATION_SENT' && e.metadata?.channel === 'Email');
+
+  const renderTimeline = () => (
+    <div className="w-full text-left bg-slate-950/50 p-4 rounded-xl border border-slate-700/50 space-y-4">
+      <div className="flex items-center space-x-3 text-sm text-green-400">
+        <CheckCircle className="w-5 h-5" /> <span className="font-bold">Alert Sent</span>
+      </div>
+      
+      <div className={`flex items-center space-x-3 text-sm ${liveAlert?.latitude ? 'text-green-400' : 'text-slate-500'}`}>
+        {liveAlert?.latitude ? <CheckCircle className="w-5 h-5" /> : <div className="w-5 h-5 rounded-full border-2 border-slate-600"></div>} 
+        <span className="font-bold">Location Updated {liveAlert?.latitude && <span className="text-xs text-green-500 font-normal ml-2 bg-green-900/30 px-2 py-0.5 rounded">High Accuracy</span>}</span>
+      </div>
+      
+      <div className={`flex items-center space-x-3 text-sm ${isAcknowledged ? 'text-yellow-400' : 'text-slate-500'}`}>
+        {isAcknowledged ? <CheckCircle className="w-5 h-5" /> : <div className="w-5 h-5 rounded-full border-2 border-slate-600"></div>}
+        <span className="font-bold">Control Room Acknowledged</span>
+      </div>
+
+      <div className={`flex items-center space-x-3 text-sm ${isResolved ? 'text-green-400' : 'text-slate-500'}`}>
+        {isResolved ? <CheckCircle className="w-5 h-5" /> : <div className="w-5 h-5 rounded-full border-2 border-slate-600"></div>}
+        <span className="font-bold">Assistance Dispatched / Resolved</span>
+      </div>
+
+      {isCancelled && (
+        <div className="flex items-center space-x-3 text-sm text-slate-400 pt-3 border-t border-slate-800">
+          <XCircle className="w-5 h-5" /> <span className="font-bold">Alert Cancelled by Citizen</span>
+        </div>
+      )}
+    </div>
+  );
 
   const types = [
     { label: 'Crime', value: 'CRIME', icon: '🚓' },
@@ -120,13 +198,15 @@ const SOSDialog: React.FC<SOSDialogProps> = ({ activeAlertId, initialReferenceNu
   ];
 
   return (
-    <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[100] bg-black/60 flex items-center justify-center p-4">
       <div className="bg-slate-900 border border-slate-700 shadow-2xl rounded-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[90vh]">
-        {/* Header */}
+        
         <div className={`p-4 flex items-center justify-between ${isCancelled ? 'bg-slate-800' : 'bg-red-950/80 border-b border-red-900'}`}>
           <div className="flex items-center space-x-3">
             <ShieldAlert className={`w-6 h-6 ${isCancelled ? 'text-slate-400' : 'text-red-500 animate-pulse'}`} />
-            <h2 className="text-lg font-bold text-white tracking-wide">Emergency Alert</h2>
+            <h2 className="text-lg font-bold text-white tracking-wide">
+              {isCancelled ? 'Alert Cancelled' : '🚨 Emergency Alert Sent'}
+            </h2>
           </div>
           <button onClick={onClose} className="p-2 text-slate-400 hover:text-white rounded-full hover:bg-slate-800 transition">
             <XCircle className="w-6 h-6" />
@@ -134,40 +214,76 @@ const SOSDialog: React.FC<SOSDialogProps> = ({ activeAlertId, initialReferenceNu
         </div>
 
         <div className="flex-1 overflow-y-auto p-5 space-y-6">
-          {/* Status Section */}
           <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700 flex flex-col items-center justify-center text-center space-y-3 shadow-inner">
             <div className="text-slate-400 text-xs font-mono tracking-widest uppercase">Reference Number</div>
-            <div className="text-xl font-mono font-bold text-white">{currentAlert.referenceNumber}</div>
-            <div className="mt-2">{getStatusBadge()}</div>
+            <div className="text-2xl font-mono font-bold text-white">{currentAlert.referenceNumber}</div>
             
-            {isActive && <p className="text-red-400 text-xs font-medium mt-2">Authorities have been notified.<br/>Please provide additional information if you can.</p>}
-            {isAcknowledged && !isResolved && <p className="text-yellow-400 text-xs font-medium mt-2">Control room has acknowledged your alert.<br/>Help is being coordinated.</p>}
+            {!isCancelled && !isResolved && (
+              <div className="flex items-center space-x-2 text-red-400 font-mono font-bold bg-red-950/40 px-3 py-1 rounded-full border border-red-900/50 mt-1">
+                <Clock className="w-4 h-4 animate-pulse" />
+                <span>Emergency Active - {formatTime(elapsed)}</span>
+              </div>
+            )}
+            
+            <p className="text-green-400 text-xs font-medium mt-2">
+              ✅ Your emergency alert has been successfully delivered to the control authority.
+            </p>
+            <p className="text-slate-400 text-xs">
+              Please keep this window open if it is safe to do so.<br/>
+              You may optionally provide additional information below.
+            </p>
           </div>
 
           {errorMsg && (
-            <div className="bg-red-900/50 border border-red-500/50 text-red-200 text-xs p-3 rounded-lg">
+            <div className="bg-red-900/50 border border-red-500/50 text-red-200 text-xs p-3 rounded-lg text-center">
               {errorMsg}
             </div>
           )}
 
-          {/* Form Content - Disabled if Cancelled or Resolved */}
-          <div className={`space-y-6 ${isCancelled || isResolved ? 'opacity-50 pointer-events-none' : ''}`}>
-            
-            {/* Location Section */}
-            <div className="space-y-3">
-              <h3 className="text-sm font-semibold text-slate-300 flex items-center"><MapPin className="w-4 h-4 mr-2" /> Share My Current Location</h3>
-              <button 
-                onClick={handleShareGPS}
-                disabled={gpsLoading || !!liveAlert?.latitude}
-                className="w-full py-4 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 text-white rounded-xl font-bold transition flex items-center justify-center shadow-lg active:scale-95"
-              >
-                {gpsLoading ? 'Acquiring GPS...' : liveAlert?.latitude ? '📍 GPS Shared Successfully' : <><Crosshair className="w-5 h-5 mr-2"/> Share GPS</>}
-              </button>
+          {renderTimeline()}
+
+          {events.length > 0 && !isCancelled && (
+            <div className="bg-slate-900/30 border border-slate-700/50 p-3 rounded-xl text-xs flex flex-col space-y-2">
+              <span className="text-slate-500 font-bold uppercase tracking-wider mb-1">Alert Delivered To:</span>
+              <div className="flex space-x-4">
+                <span className={`flex items-center gap-1 ${deliveredDash ? 'text-green-400' : 'text-slate-600'}`}>
+                  {deliveredDash ? <CheckCircle className="w-3 h-3" /> : <LayoutDashboard className="w-3 h-3" />} Dashboard
+                </span>
+                <span className={`flex items-center gap-1 ${deliveredTg ? 'text-green-400' : failedTg ? 'text-yellow-500' : 'text-slate-600'}`}>
+                  {deliveredTg ? <CheckCircle className="w-3 h-3" /> : failedTg ? <AlertTriangle className="w-3 h-3" /> : <Send className="w-3 h-3" />} 
+                  Telegram
+                </span>
+                <span className={`flex items-center gap-1 ${deliveredEmail ? 'text-green-400' : 'text-slate-600'}`}>
+                  {deliveredEmail ? <CheckCircle className="w-3 h-3" /> : <Mail className="w-3 h-3" />} Email
+                </span>
+              </div>
             </div>
+          )}
+
+          <div className={`space-y-6 ${isCancelled || isResolved ? 'opacity-50 pointer-events-none' : ''}`}>
+            {gpsLoading ? (
+              <div className="bg-slate-800 p-4 rounded-xl text-center border border-slate-700 animate-pulse">
+                <p className="text-sm font-bold text-slate-300">Obtaining your location...</p>
+                <p className="text-xs text-slate-500 mt-1">📍 Requesting GPS permission...</p>
+              </div>
+            ) : liveAlert?.latitude ? (
+              <div className="bg-green-900/20 border border-green-500/30 p-4 rounded-xl text-center">
+                <p className="text-sm font-bold text-green-400">✅ Current location shared.</p>
+                <p className="text-xs text-slate-400 mt-1">Authorities can track your position.</p>
+              </div>
+            ) : gpsDenied ? (
+              <div className="space-y-3">
+                <button 
+                  onClick={handleShareGPS}
+                  className="w-full py-4 bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white rounded-xl font-bold transition flex items-center justify-center shadow-lg active:scale-95"
+                >
+                  <MapPin className="w-5 h-5 mr-2"/> Retry Sharing GPS
+                </button>
+              </div>
+            ) : null}
 
             <hr className="border-slate-800" />
 
-            {/* Type Section */}
             <div className="space-y-3">
               <h3 className="text-sm font-semibold text-slate-300">Emergency Type</h3>
               <div className="grid grid-cols-2 gap-2">
@@ -191,19 +307,17 @@ const SOSDialog: React.FC<SOSDialogProps> = ({ activeAlertId, initialReferenceNu
                 })}
               </div>
             </div>
-
           </div>
 
-          {/* Cancel Section */}
           {!isCancelled && !isResolved && (
             <div className="mt-8 pt-6 border-t border-slate-800">
               {showCancelConfirm ? (
                 <div className="bg-slate-800 border border-slate-700 p-4 rounded-xl text-center space-y-4">
                   <h4 className="text-white font-bold">Are you sure?</h4>
-                  <p className="text-slate-400 text-xs">Authorities have already been notified. Cancel this alert?</p>
+                  <p className="text-slate-400 text-xs">Authorities have already been notified. Cancel this emergency alert?</p>
                   <div className="flex space-x-3">
-                    <button onClick={handleCancelAlert} disabled={loading} className="flex-1 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-bold">Yes</button>
-                    <button onClick={() => setShowCancelConfirm(false)} className="flex-1 py-3 bg-red-600 hover:bg-red-500 text-white rounded-lg font-bold">No</button>
+                    <button onClick={handleCancelAlert} disabled={loading} className="flex-1 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-bold text-sm">Cancel Alert</button>
+                    <button onClick={() => setShowCancelConfirm(false)} className="flex-1 py-3 bg-red-600 hover:bg-red-500 text-white rounded-lg font-bold text-sm">Keep Alert Active</button>
                   </div>
                 </div>
               ) : (
@@ -216,7 +330,7 @@ const SOSDialog: React.FC<SOSDialogProps> = ({ activeAlertId, initialReferenceNu
                       : 'bg-transparent text-slate-400 border border-slate-600 hover:bg-slate-800 hover:text-white hover:border-slate-500'
                   }`}
                 >
-                  <span className="text-lg mr-2">⚪</span> Cancel Emergency Alert
+                  <span className="text-lg mr-2">⚪</span> False Alarm
                 </button>
               )}
               {isAcknowledged && (
@@ -226,7 +340,6 @@ const SOSDialog: React.FC<SOSDialogProps> = ({ activeAlertId, initialReferenceNu
               )}
             </div>
           )}
-
         </div>
       </div>
     </div>

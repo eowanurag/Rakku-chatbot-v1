@@ -286,11 +286,17 @@ function ChatContent() {
         setIsEmergencyDialogOpen(true);
 
         if (res.isDuplicate) {
+          // If it's a duplicate, we still open the dialog (which will show the active state)
+          // but we can add a smaller chat message for history.
           setMessages(prev => [...prev, {
             role: "assistant",
-            text: `⚠️ **Update:** Emergency alert ${res.referenceNumber} escalated again. Priority has been elevated.`
+            text: `⚠️ **Update:** Emergency alert ${res.referenceNumber} has been re-escalated.`
           }]);
-          return;
+        } else {
+          setMessages(prev => [...prev, {
+            role: "assistant",
+            text: `🚨 **Emergency Alert Sent Successfully**\n\nYour emergency alert has been received.\n\nReference Number: **${res.referenceNumber}**\n\nOur response team has been notified. If it is safe, keep your phone nearby and keep this page open.\n\n*(Please allow location access so we can pinpoint your coordinates)*`
+          }]);
         }
 
         EmergencyService.getActiveAlerts().then(alerts => {
