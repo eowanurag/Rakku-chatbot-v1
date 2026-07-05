@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { EmergencyAlert, EmergencyAlertEvent } from '@prisma/client';
 import axios from 'axios';
+import * as nodemailer from 'nodemailer';
 import { EmergencyGateway } from './emergency.gateway';
 
 export interface EmergencyNotifier {
@@ -22,7 +23,7 @@ export class TelegramNotifier implements EmergencyNotifier {
       return false;
     }
 
-    const message = `🚨 *NEW SOS ALERT*
+    const message = `🚨 <b>NEW SOS ALERT</b>
 Reference: ${alert.referenceNumber}
 Status: ${alert.status}
 Severity: ${alert.severity}
@@ -42,7 +43,7 @@ Please open the Rakku Admin Dashboard.`;
       await axios.post(`https://api.telegram.org/bot${botToken}/sendMessage`, {
         chat_id: chatId,
         text: message,
-        parse_mode: 'Markdown'
+        parse_mode: 'HTML'
       });
       return true;
     } catch (e) {
@@ -64,11 +65,45 @@ export class EmailNotifier implements EmergencyNotifier {
       return false;
     }
 
-    // Stub implementation as per V1 prototype requirements 
-    // Usually uses nodemailer here
-    this.logger.log(`Simulating Email sent from ${process.env.SMTP_FROM || 'Rakku'} to ${process.env.ALERT_EMAIL || 'rakkuadmin@gmail.com'} for alert ${alert.referenceNumber}`);
-    
-    return true;
+    try {
+      const transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST || 'smtp.gmail.com',
+        port: parseInt(process.env.SMTP_PORT || '587'),
+        secure: process.env.SMTP_SECURE === 'true',
+        auth: {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASS,
+        },
+      });
+
+      const message = `
+      <h2>🚨 NEW SOS ALERT</h2>
+      <p><b>Reference:</b> ${alert.referenceNumber}</p>
+      <p><b>Status:</b> ${alert.status}</p>
+      <p><b>Severity:</b> ${alert.severity}</p>
+      <br/>
+      <p><b>Citizen:</b> ${alert.citizenSnapshot ? (alert.citizenSnapshot as any).fullName || 'Unknown' : 'Unknown'}</p>
+      <p><b>Mobile:</b> ${alert.citizenSnapshot ? (alert.citizenSnapshot as any).mobileNumber || 'Unknown' : 'Unknown'}</p>
+      <br/>
+      <p><b>Trigger:</b> ${alert.triggerSource}</p>
+      <p><b>Time:</b> ${alert.createdAt.toLocaleString()}</p>
+      <br/>
+      <p>Please log in to the Rakku Admin Dashboard immediately.</p>
+      `;
+
+      await transporter.sendMail({
+        from: process.env.SMTP_FROM || 'Rakku Emergency <rakkuadmin@gmail.com>',
+        to: process.env.ALERT_EMAIL || 'rakkuadmin@gmail.com',
+        subject: `🚨 URGENT: SOS Alert ${alert.referenceNumber}`,
+        html: message,
+      });
+
+      this.logger.log(`Email successfully sent for alert ${alert.referenceNumber}`);
+      return true;
+    } catch (e) {
+      this.logger.error(`Email notification failed: ${e.message}`);
+      return false;
+    }
   }
 }
 
