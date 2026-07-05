@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useEmergencySocket, EmergencyAlertData } from '../../hooks/useEmergencySocket';
-import { EmergencyService } from '../../services/api';
+import { useEmergencySocket, EmergencyAlertData } from '../hooks/useEmergencySocket';
+import { EmergencyService } from '../services/api';
 import { MapPin, Crosshair, XCircle, AlertTriangle, CheckCircle, ShieldAlert, Clock, LayoutDashboard, Send, Mail } from 'lucide-react';
 
 interface SOSDialogProps {
