@@ -46,7 +46,7 @@ export class EmergencyController {
   @Patch(':id/details')
   async updateDetails(
     @Param('id') id: string,
-    @Body() body: { locationText?: string; mobileNumber?: string; isForOther?: boolean }
+    @Body() body: { locationText?: string; mobileNumber?: string; friendMobileNumber?: string; isForOther?: boolean }
   ) {
     return this.emergencyService.updateDetails(id, body);
   }

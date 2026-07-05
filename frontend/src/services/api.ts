@@ -337,7 +337,7 @@ export const EmergencyService = {
     }
   },
 
-  async updateDetails(id: string, details: { locationText?: string; mobileNumber?: string; isForOther?: boolean }) {
+  async updateDetails(id: string, details: { locationText?: string; mobileNumber?: string; isForOther?: boolean; friendMobileNumber?: string }) {
     try {
       return await fetchApi(`/emergency/${id}/details`, {
         method: "PATCH",
@@ -346,6 +346,13 @@ export const EmergencyService = {
     } catch {
       return null;
     }
+  },
+
+  async cancelAlert(id: string) {
+    const res = await fetchApi(`/emergency/${id}/cancel`, {
+      method: "PATCH",
+    });
+    return res;
   },
 
   async getActiveAlerts() {

@@ -132,13 +132,16 @@ export class EmergencyService implements OnModuleInit {
     return updated;
   }
 
-  async updateDetails(alertId: string, details: { locationText?: string; mobileNumber?: string; isForOther?: boolean }) {
+  async updateDetails(alertId: string, details: { locationText?: string; mobileNumber?: string; friendMobileNumber?: string; isForOther?: boolean }) {
     const alert = await this.repo.getAlertById(alertId);
     if (!alert) throw new Error('Alert not found');
 
     let updatedSnapshot = (alert.citizenSnapshot as any) || {};
     if (details.mobileNumber) {
       updatedSnapshot.mobileNumber = details.mobileNumber;
+    }
+    if (details.friendMobileNumber) {
+      updatedSnapshot.friendMobileNumber = details.friendMobileNumber;
     }
     if (details.isForOther !== undefined) {
       updatedSnapshot.isForOther = details.isForOther;

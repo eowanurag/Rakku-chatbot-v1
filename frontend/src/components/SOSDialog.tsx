@@ -17,6 +17,7 @@ const SOSDialog: React.FC<SOSDialogProps> = ({ activeAlertId, initialReferenceNu
   const [gpsDenied, setGpsDenied] = useState(false);
   const [manualLocation, setManualLocation] = useState('');
   const [mobileNumber, setMobileNumber] = useState('');
+  const [friendMobileNumber, setFriendMobileNumber] = useState('');
   const [isForOther, setIsForOther] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -148,12 +149,7 @@ const SOSDialog: React.FC<SOSDialogProps> = ({ activeAlertId, initialReferenceNu
     if (loading || isCancelled || isResolved) return;
     setLoading(true);
     try {
-      const res = await fetch(`${backendUrl}/emergency/${currentAlert.id}/cancel`, {
-        method: 'PATCH'
-      });
-      if (!res.ok) {
-        throw new Error('Alert has already been acknowledged or cannot be cancelled.');
-      }
+      await EmergencyService.cancelAlert(currentAlert.id);
       setLiveAlert(prev => prev ? { ...prev, status: 'CANCELLED' } : null);
     } catch (e: any) {
       setErrorMsg(e.message || 'Error cancelling alert');
@@ -170,6 +166,7 @@ const SOSDialog: React.FC<SOSDialogProps> = ({ activeAlertId, initialReferenceNu
       const details: any = {};
       if (manualLocation.trim()) details.locationText = manualLocation;
       if (mobileNumber.trim()) details.mobileNumber = mobileNumber;
+      if (friendMobileNumber.trim()) details.friendMobileNumber = friendMobileNumber;
       details.isForOther = isForOther;
 
       await EmergencyService.updateDetails(currentAlert.id, details);
@@ -401,6 +398,14 @@ const SOSDialog: React.FC<SOSDialogProps> = ({ activeAlertId, initialReferenceNu
               {isForOther && (
                 <div className="flex flex-col space-y-2">
                   <input
+                    type="tel"
+                    value={friendMobileNumber}
+                    onChange={(e) => setFriendMobileNumber(e.target.value)}
+                    placeholder="Provide mobile no. of family/friend"
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-red-500 transition-colors"
+                  />
+                  
+                  <input
                     type="text"
                     value={manualLocation}
                     onChange={(e) => setManualLocation(e.target.value)}
@@ -413,7 +418,7 @@ const SOSDialog: React.FC<SOSDialogProps> = ({ activeAlertId, initialReferenceNu
                     disabled={loading}
                     className="w-full py-3 bg-red-600 hover:bg-red-500 disabled:bg-slate-700 text-white rounded-xl font-bold text-sm transition shadow-lg active:scale-95"
                   >
-                    Submit Location Info
+                    Submit Additional Info
                   </button>
                 </div>
               )}
