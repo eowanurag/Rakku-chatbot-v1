@@ -61,11 +61,13 @@ Designed with a modular architecture, RAKKU can operate independently or integra
 
 ```mermaid
 graph TD
-    A["Frontend (Next.js 15 App)"] -->|"/api/chat (Message + Coordinates)"| B["Backend Gateway (NestJS)"]
+    A["Frontend Chat (Next.js)"] -->|"/api/chat (Message + GPS)"| B["Backend Gateway (NestJS)"]
     B -->|"/api/chat (Proxy with Fallback)"| C["AI Service (FastAPI)"]
     B -->|Read/Write Operations| D[("Database (PostgreSQL via Prisma)")]
     C -->|"Vector RAG lookup"| E["Local Knowledge Base (JSON)"]
-    C -->|"Structured Extraction & Text Gen"| F["Gemini 2.5 Flash API"]
+    C -->|"Structured Extraction"| F["Gemini 2.5 Flash API"]
+    B -.->|"Socket.IO (new_alert, alert_updated)"| G["Admin Dashboard (Next.js)"]
+    G -->|Read/Write Operations| B
 ```
 
 **Explanation**
@@ -75,7 +77,7 @@ Citizen
 ↓
 Next.js Portal
 ↓
-NestJS Gateway
+NestJS Gateway ⇌ Admin Dashboard (Live WebSockets)
 ↓
 FastAPI AI Engine
 ↓
@@ -176,6 +178,8 @@ Rakku-chatbot-v1/
 - **Profile Reuse Protocol (PRP)**: A generic engine (`handleProfileReuseProtocol`) mapping verified Citizen profiles to target service roles (e.g. Subject or Organizer) to eliminate redundant inputs while preserving database isolation for third-party submissions. Enforces high-contrast UI review cards, dynamic profile source badges (`Verified Profile` or `Manual Entry`), and screen reader live accessibility announcements (`Announcements.announce`) vocalizing pre-fill triggers.
 - **Feedback Intelligence**: Supports multi-category feedback collection (e.g. PERFORMANCE, ACCESSIBILITY, CLARITY, ACCURACY, OTHER) with matching FastAPI backend/NestJS fallback processing, rating pipelines, and frontend verification.
 - **Jurisdiction Dataset Coverage**: Fully maps all 75 Uttar Pradesh districts. Validates data integrity on system boot.
+- **Admin Intelligence Hub**: Fully integrated native React component displaying key citizen analytics, language usage, sentiment, and automated actionable recommendations directly inside the Admin Dashboard without disrupting live SOS monitoring.
+- **Live WebSocket Notifications**: Hardened Socket.IO logic ensuring the frontend gracefully deduplicates alerts and correctly pauses sirens upon acknowledgment. A real-time notification bell dynamically tracks unread SOS events in the header.
 - **Placeholder Routing UX**: Masks GPS coordinates, phone numbers, and maps URLs for unverified district placeholders and presents a provisional routing notice.
 
 ## Testing & Quality Assurance
@@ -257,6 +261,10 @@ npm run build
 **Next Milestone:** Production Deployment & Monitoring
 
 ### Key V1 Release Accomplishments
+- **Command Center Architecture (v1.2):**
+  - Integrated the Admin Intelligence dashboard natively into the main layout to allow simultaneous review of analytics and incoming emergencies.
+  - Hardened real-time WebSocket communication to fix duplicating unacknowledged SOS sirens and integrated a live notification bell.
+  - Enforced rigorous Light/Dark mode Tailwind parity across all nested modules.
 - **Profile Reuse Protocol (PRP) Hardening:**
   - Integrated high-contrast visual review cards displaying dynamic profile source badges (`Verified Profile` or `Manual Entry`).
   - Added ARIA live announcements via `Announcements.announce` to dynamically read out pre-fill triggers, optimizing keyboard and screen reader accessibility.
@@ -294,6 +302,7 @@ npm run build
 | v1.0-RC3 | 2026-06-15 | Feedback Intelligence: Category mapping alignment, rating pipelines, and 8 dedicated integration tests |
 | v1.0 | 2026-06-15 | V1 Production Ready: Release Candidate Audit, Localization Parity Hardening, and full-system verification |
 | v1.1 | 2026-06-21 | Mobile-First Welcome Flow, Returning Citizen Lookup, Mobile Sidebar Default Tuning, and Geolocation Consistency Fixes |
+| v1.2 | 2026-07-05 | Integrated Admin Intelligence Hub, robust real-time SOS WebSocket deduplication, Notification Bell, and full Light/Dark Theme parity |
 
 ## Contributing
 
