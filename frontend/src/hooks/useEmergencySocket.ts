@@ -8,6 +8,7 @@ export interface EmergencyAlertData {
   adminAcknowledged: boolean;
   latitude?: number | null;
   longitude?: number | null;
+  locationText?: string | null;
   emergencyType?: string;
   createdAt: string;
 }
