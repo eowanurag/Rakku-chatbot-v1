@@ -117,4 +117,9 @@ export class DashboardNotifier implements EmergencyNotifier {
     this.gateway.broadcastNewAlert(alert);
     return true;
   }
+
+  async notifyUpdate(alert: EmergencyAlert): Promise<boolean> {
+    this.gateway.broadcastAlertUpdate(alert);
+    return true;
+  }
 }

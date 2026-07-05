@@ -37,6 +37,14 @@ export default function AdminPage() {
   const [verifications, setVerifications] = useState<any[]>([]);
   const [certificates, setCertificates] = useState<any[]>([]);
   const [events, setEvents] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<{id: string, message: string}[]>([]);
+
+  const handleNewNotification = (alert: any) => {
+    setNotifications(prev => [
+      { id: alert.id, message: `New SOS from ${alert.locationText || 'Citizen'}` },
+      ...prev
+    ].slice(0, 5));
+  };
 
   // Load all data
   const loadData = async () => {
@@ -206,13 +214,19 @@ export default function AdminPage() {
             {/* Notification Bell */}
             <div className="relative cursor-pointer group">
               <span className="text-xl">🔔</span>
-              <div className="absolute -top-1 -right-1 w-4 h-4 bg-[#EF4444] rounded-full flex items-center justify-center text-[10px] text-white font-bold animate-bounce">3</div>
+              {notifications.length > 0 && (
+                <div className="absolute -top-1 -right-1 w-4 h-4 bg-[#EF4444] rounded-full flex items-center justify-center text-[10px] text-white font-bold animate-bounce">{notifications.length}</div>
+              )}
               <div className="absolute top-8 -left-20 w-64 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-xl rounded-lg p-3 hidden group-hover:block z-50">
-                <p className="text-xs font-bold text-slate-800 dark:text-slate-300 mb-2 border-b border-slate-200 dark:border-slate-700 pb-1">Notifications (3)</p>
+                <p className="text-xs font-bold text-slate-800 dark:text-slate-300 mb-2 border-b border-slate-200 dark:border-slate-700 pb-1">Notifications ({notifications.length})</p>
                 <ul className="space-y-2 text-xs text-slate-600 dark:text-slate-400">
-                  <li><span className="text-[#EF4444]">●</span> New SOS from Lucknow</li>
-                  <li><span className="text-[#10B981]">●</span> Complaint CMP-1024 Approved</li>
-                  <li><span className="text-[#3B82F6]">●</span> Verification VFC-202 Completed</li>
+                  {notifications.length === 0 ? (
+                    <li className="text-center text-slate-400 italic">No new notifications</li>
+                  ) : (
+                    notifications.map(n => (
+                      <li key={n.id}><span className="text-[#EF4444]">●</span> {n.message}</li>
+                    ))
+                  )}
                 </ul>
               </div>
             </div>
@@ -406,7 +420,9 @@ export default function AdminPage() {
 
         {/* RIGHT EMERGENCY FEED */}
         <aside className="w-[400px] bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 flex flex-col shrink-0 z-20 shadow-lg relative">
-          <EmergencyAlertsWidget onSelectAlert={(alert) => {
+          <EmergencyAlertsWidget 
+            onNewNotification={handleNewNotification}
+            onSelectAlert={(alert) => {
             setSelectedRecord({
               ...alert,
               isEmergency: true,

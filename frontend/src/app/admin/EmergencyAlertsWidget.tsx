@@ -5,7 +5,7 @@ import { AlertCircle, Clock, MapPin, CheckCircle, ShieldCheck, Volume2, VolumeX,
 import { EmergencyService } from "../../services/api";
 import { io } from "socket.io-client";
 
-export default function EmergencyAlertsWidget({ onSelectAlert }: { onSelectAlert?: (alert: any) => void }) {
+export default function EmergencyAlertsWidget({ onSelectAlert, onNewNotification }: { onSelectAlert?: (alert: any) => void, onNewNotification?: (alert: any) => void }) {
   const [alerts, setAlerts] = useState<any[]>([]);
   const [filter, setFilter] = useState<'ALL' | 'ACTIVE' | 'ACKNOWLEDGED' | 'RESOLVED' | 'CANCELLED'>('ALL');
   const [newUnseenAlert, setNewUnseenAlert] = useState<boolean>(false);
@@ -54,8 +54,17 @@ export default function EmergencyAlertsWidget({ onSelectAlert }: { onSelectAlert
     });
 
     socket.on("new_alert", (alert) => {
-      setAlerts(prev => [alert, ...prev]);
-      setStats(prev => ({ ...prev, active: prev.active + 1 }));
+      setAlerts(prev => {
+        const exists = prev.some(a => a.id === alert.id);
+        if (exists) {
+          // If it already exists, treat it as an update
+          return prev.map(a => a.id === alert.id ? alert : a);
+        }
+        // It's genuinely new
+        if (onNewNotification) onNewNotification(alert);
+        setStats(s => ({ ...s, active: s.active + 1 }));
+        return [alert, ...prev];
+      });
       
       // Auto-scroll to top
       if (feedRef.current) {

@@ -117,7 +117,7 @@ export class EmergencyService implements OnModuleInit {
       metadata: { latitude, longitude, source }
     });
 
-    this.dashboardNotifier.notify(updated);
+    this.dashboardNotifier.notifyUpdate(updated);
     return updated;
   }
 
@@ -128,7 +128,7 @@ export class EmergencyService implements OnModuleInit {
       eventType: 'ADMIN_NOTE',
       metadata: { emergencyType }
     });
-    this.dashboardNotifier.notify(updated);
+    this.dashboardNotifier.notifyUpdate(updated);
     return updated;
   }
 
@@ -160,7 +160,7 @@ export class EmergencyService implements OnModuleInit {
       metadata: details
     });
 
-    this.dashboardNotifier.notify(updated);
+    this.dashboardNotifier.notifyUpdate(updated);
     return updated;
   }
 
@@ -178,7 +178,7 @@ export class EmergencyService implements OnModuleInit {
       metadata: { adminId }
     });
 
-    this.dashboardNotifier.notify(updated);
+    this.dashboardNotifier.notifyUpdate(updated);
     return updated;
   }
 
@@ -193,7 +193,7 @@ export class EmergencyService implements OnModuleInit {
       metadata: { adminId }
     });
 
-    this.dashboardNotifier.notify(updated);
+    this.dashboardNotifier.notifyUpdate(updated);
     return updated;
   }
 
