@@ -47,6 +47,11 @@ const SOSDialog: React.FC<SOSDialogProps> = ({ activeAlertId, initialReferenceNu
       .then(res => res.json())
       .then(data => {
         if (data.events) setEvents(data.events);
+        
+        // Extract mobile number if present
+        if (data.citizenSnapshot?.mobileNumber && data.citizenSnapshot.mobileNumber !== 'Pending') {
+          setMobileNumber(prev => prev || data.citizenSnapshot.mobileNumber);
+        }
       })
       .catch(console.error);
 
@@ -140,13 +145,15 @@ const SOSDialog: React.FC<SOSDialogProps> = ({ activeAlertId, initialReferenceNu
   };
 
   const handleCancelAlert = async () => {
-    if (loading || isAcknowledged || isCancelled || isResolved) return;
+    if (loading || isCancelled || isResolved) return;
     setLoading(true);
     try {
       const res = await fetch(`${backendUrl}/emergency/${currentAlert.id}/cancel`, {
         method: 'PATCH'
       });
-      if (!res.ok) throw new Error('Failed to cancel alert');
+      if (!res.ok) {
+        throw new Error('Alert has already been acknowledged or cannot be cancelled.');
+      }
       setLiveAlert(prev => prev ? { ...prev, status: 'CANCELLED' } : null);
     } catch (e: any) {
       setErrorMsg(e.message || 'Error cancelling alert');
@@ -329,6 +336,29 @@ const SOSDialog: React.FC<SOSDialogProps> = ({ activeAlertId, initialReferenceNu
 
             <hr className="border-slate-800" />
 
+            {/* Mobile Number Section - High Priority */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold text-slate-300">Contact Number <span className="text-red-500">*</span></h3>
+              <div className="flex flex-col space-y-2">
+                <input
+                  type="tel"
+                  value={mobileNumber}
+                  onChange={(e) => setMobileNumber(e.target.value)}
+                  placeholder="Enter your Mobile No. for callback"
+                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-red-500 transition-colors shadow-inner"
+                />
+                <button 
+                  onClick={handleUpdateDetails}
+                  disabled={loading || !mobileNumber.trim()}
+                  className="w-full py-2 bg-red-600 hover:bg-red-500 disabled:bg-slate-700 text-white rounded-xl font-bold text-sm transition shadow-lg active:scale-95"
+                >
+                  Save Number
+                </button>
+              </div>
+            </div>
+
+            <hr className="border-slate-800" />
+
             <div className="space-y-3">
               <h3 className="text-sm font-semibold text-slate-300">Emergency Type</h3>
               <div className="grid grid-cols-2 gap-2">
@@ -356,7 +386,7 @@ const SOSDialog: React.FC<SOSDialogProps> = ({ activeAlertId, initialReferenceNu
             <hr className="border-slate-800" />
 
             <div className="space-y-3">
-              <h3 className="text-sm font-semibold text-slate-300">Additional Details</h3>
+              <h3 className="text-sm font-semibold text-slate-300">Reporting for someone else? (Optional)</h3>
               
               <label className="flex items-center space-x-3 cursor-pointer p-3 bg-slate-800 border border-slate-700 rounded-xl">
                 <input 
@@ -365,36 +395,28 @@ const SOSDialog: React.FC<SOSDialogProps> = ({ activeAlertId, initialReferenceNu
                   onChange={(e) => setIsForOther(e.target.checked)}
                   className="w-5 h-5 rounded border-slate-500 text-red-500 focus:ring-red-500 bg-slate-900"
                 />
-                <span className="text-sm font-bold text-slate-300">Reporting for family/friend?</span>
+                <span className="text-sm font-bold text-slate-300">Yes, this emergency is for a family/friend</span>
               </label>
 
-              <div className="flex flex-col space-y-2">
-                <input
-                  type="tel"
-                  value={mobileNumber}
-                  onChange={(e) => setMobileNumber(e.target.value)}
-                  placeholder={isForOther ? "Family/Friend Mobile No." : "Your Mobile No."}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-red-500 transition-colors"
-                />
-                
-                {isForOther && (
+              {isForOther && (
+                <div className="flex flex-col space-y-2">
                   <input
                     type="text"
                     value={manualLocation}
                     onChange={(e) => setManualLocation(e.target.value)}
-                    placeholder="Location of family/friend"
+                    placeholder="Provide location/landmark of family/friend"
                     className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-red-500 transition-colors"
                   />
-                )}
-                
-                <button 
-                  onClick={handleUpdateDetails}
-                  disabled={loading || (!mobileNumber.trim() && !isForOther)}
-                  className="w-full py-3 bg-red-600 hover:bg-red-500 disabled:bg-slate-700 text-white rounded-xl font-bold text-sm transition shadow-lg active:scale-95"
-                >
-                  Save Additional Details
-                </button>
-              </div>
+                  
+                  <button 
+                    onClick={handleUpdateDetails}
+                    disabled={loading}
+                    className="w-full py-3 bg-red-600 hover:bg-red-500 disabled:bg-slate-700 text-white rounded-xl font-bold text-sm transition shadow-lg active:scale-95"
+                  >
+                    Submit Location Info
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
@@ -412,19 +434,14 @@ const SOSDialog: React.FC<SOSDialogProps> = ({ activeAlertId, initialReferenceNu
               ) : (
                 <button
                   onClick={() => setShowCancelConfirm(true)}
-                  disabled={isAcknowledged}
-                  className={`w-full py-4 rounded-xl font-bold transition flex items-center justify-center ${
-                    isAcknowledged 
-                      ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700' 
-                      : 'bg-transparent text-slate-400 border border-slate-600 hover:bg-slate-800 hover:text-white hover:border-slate-500'
-                  }`}
+                  className="w-full py-4 rounded-xl font-bold transition flex items-center justify-center bg-transparent text-slate-400 border border-slate-600 hover:bg-slate-800 hover:text-white hover:border-slate-500"
                 >
                   <span className="text-lg mr-2">⚪</span> False Alarm
                 </button>
               )}
               {isAcknowledged && (
-                <p className="text-slate-500 text-[10px] mt-3 text-center px-4">
-                  Your emergency has already been acknowledged by the control room. This alert can no longer be cancelled. If this was accidental, please wait for the responding authority.
+                <p className="text-yellow-500/80 text-[10px] mt-3 text-center px-4">
+                  ⚠️ Your emergency has already been acknowledged. Cancelling now will immediately notify the responding authority to stand down.
                 </p>
               )}
             </div>

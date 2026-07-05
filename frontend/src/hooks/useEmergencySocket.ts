@@ -10,6 +10,7 @@ export interface EmergencyAlertData {
   longitude?: number | null;
   locationText?: string | null;
   emergencyType?: string;
+  citizenSnapshot?: any;
   createdAt: string;
 }
 

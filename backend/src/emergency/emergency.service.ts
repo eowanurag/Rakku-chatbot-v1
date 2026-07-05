@@ -197,8 +197,9 @@ export class EmergencyService implements OnModuleInit {
   async cancelAlert(alertId: string) {
     const alert = await this.repo.getAlertById(alertId);
     if (!alert) throw new Error('Alert not found');
-    if (alert.status !== 'ACTIVE') throw new Error('Only active alerts can be cancelled');
-    if (alert.adminAcknowledged) throw new Error('Alert has already been acknowledged and cannot be cancelled');
+    if (alert.status === 'CANCELLED' || alert.status === 'RESOLVED') {
+      throw new Error('This alert is already closed.');
+    }
 
     const updated = await this.repo.updateAlert(alertId, {
       status: 'CANCELLED'
@@ -207,7 +208,7 @@ export class EmergencyService implements OnModuleInit {
     await this.repo.appendEvent({
       alertId,
       eventType: 'ALERT_CANCELLED',
-      metadata: { cancelledBy: 'CITIZEN' }
+      metadata: { cancelledBy: 'CITIZEN', wasAcknowledged: alert.adminAcknowledged }
     });
 
     this.notifyAuthorities(updated);
