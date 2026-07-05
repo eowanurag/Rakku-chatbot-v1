@@ -274,7 +274,7 @@ function ChatContent() {
     setSosLoading(true);
     
     // Immediately raise alert (fire and forget)
-    EmergencyService.triggerSos("anonymous_citizen", "SOS_BUTTON", { fullName: "Anonymous Citizen", mobileNumber: "Pending" })
+    EmergencyService.triggerSos(undefined, "SOS_BUTTON", { fullName: "Anonymous Citizen", mobileNumber: "Pending" })
       .then(async (res) => {
         setSosTriggered(true);
         if (res.isDuplicate) {
