@@ -308,14 +308,10 @@ export const PortalService = {
 // 7. Emergency Service
 export const EmergencyService = {
   async triggerSos(citizenId?: string, triggerSource: string = 'SOS_BUTTON', citizenSnapshot?: any) {
-    try {
-      return await fetchApi("/emergency/sos", {
-        method: "POST",
-        body: JSON.stringify({ citizenId, triggerSource, citizenSnapshot }),
-      });
-    } catch {
-      return { referenceNumber: `SOS-UP-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`, isDuplicate: false };
-    }
+    return await fetchApi("/emergency/sos", {
+      method: "POST",
+      body: JSON.stringify({ citizenId, triggerSource, citizenSnapshot }),
+    });
   },
 
   async updateLocation(id: string, latitude: number, longitude: number, source: string = 'GPS') {
