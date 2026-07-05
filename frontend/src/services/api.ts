@@ -337,6 +337,17 @@ export const EmergencyService = {
     }
   },
 
+  async updateDetails(id: string, details: { locationText?: string; mobileNumber?: string; isForOther?: boolean }) {
+    try {
+      return await fetchApi(`/emergency/${id}/details`, {
+        method: "PATCH",
+        body: JSON.stringify(details),
+      });
+    } catch {
+      return null;
+    }
+  },
+
   async getActiveAlerts() {
     try {
       return await fetchApi("/emergency/active");

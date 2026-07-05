@@ -127,7 +127,7 @@ function ChatContent() {
     let permissionOpt = "🎭 Event Permission";
     let trackingOpt = "🔍 Track Application";
     let nearestStationOpt = "nearest police station";
-    let emergencyOpt = "Emergency Contacts";
+    let emergencyOpt = "Emergency Help";
 
     if (selectedLanguage === "hi") {
       complaintOpt = "🚔 शिकायत दर्ज करें";

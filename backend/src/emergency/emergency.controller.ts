@@ -43,6 +43,14 @@ export class EmergencyController {
     return this.emergencyService.updateEmergencyType(id, body.emergencyType);
   }
 
+  @Patch(':id/details')
+  async updateDetails(
+    @Param('id') id: string,
+    @Body() body: { locationText?: string; mobileNumber?: string; isForOther?: boolean }
+  ) {
+    return this.emergencyService.updateDetails(id, body);
+  }
+
   @Patch(':id/cancel')
   async cancelAlert(@Param('id') id: string) {
     return this.emergencyService.cancelAlert(id);

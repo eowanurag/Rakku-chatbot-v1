@@ -15,6 +15,9 @@ const SOSDialog: React.FC<SOSDialogProps> = ({ activeAlertId, initialReferenceNu
   const [loading, setLoading] = useState(false);
   const [gpsLoading, setGpsLoading] = useState(true);
   const [gpsDenied, setGpsDenied] = useState(false);
+  const [manualLocation, setManualLocation] = useState('');
+  const [mobileNumber, setMobileNumber] = useState('');
+  const [isForOther, setIsForOther] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [events, setEvents] = useState<any[]>([]);
@@ -153,6 +156,32 @@ const SOSDialog: React.FC<SOSDialogProps> = ({ activeAlertId, initialReferenceNu
     }
   };
 
+  const handleUpdateDetails = async () => {
+    if (loading || isCancelled || isResolved) return;
+    setLoading(true);
+    try {
+      const details: any = {};
+      if (manualLocation.trim()) details.locationText = manualLocation;
+      if (mobileNumber.trim()) details.mobileNumber = mobileNumber;
+      details.isForOther = isForOther;
+
+      await EmergencyService.updateDetails(currentAlert.id, details);
+      
+      // Update local state if needed
+      setLiveAlert(prev => {
+        if (!prev) return null;
+        const updated = { ...prev };
+        if (details.locationText) updated.locationText = details.locationText;
+        return updated;
+      });
+      setErrorMsg('');
+    } catch (e: any) {
+      setErrorMsg(e.message || 'Failed to update details');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const deliveredDash = events.some(e => e.eventType === 'NOTIFICATION_SENT' && e.metadata?.channel === 'Dashboard');
   const deliveredTg = events.some(e => e.eventType === 'NOTIFICATION_SENT' && e.metadata?.channel === 'Telegram');
   const failedTg = events.some(e => e.eventType === 'NOTIFICATION_FAILED' && e.metadata?.channel === 'Telegram');
@@ -279,6 +308,22 @@ const SOSDialog: React.FC<SOSDialogProps> = ({ activeAlertId, initialReferenceNu
                 >
                   <MapPin className="w-5 h-5 mr-2"/> Retry Sharing GPS
                 </button>
+                <div className="flex flex-col space-y-2 mt-2">
+                  <input
+                    type="text"
+                    value={manualLocation}
+                    onChange={(e) => setManualLocation(e.target.value)}
+                    placeholder="Or enter location manually"
+                    className="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-red-500 transition-colors"
+                  />
+                  <button 
+                    onClick={handleUpdateDetails}
+                    disabled={!manualLocation.trim() || loading}
+                    className="w-full py-2 bg-red-600 hover:bg-red-500 disabled:bg-slate-700 text-white rounded-xl font-bold text-sm transition"
+                  >
+                    Submit Location
+                  </button>
+                </div>
               </div>
             ) : null}
 
@@ -305,6 +350,39 @@ const SOSDialog: React.FC<SOSDialogProps> = ({ activeAlertId, initialReferenceNu
                     </button>
                   );
                 })}
+              </div>
+            </div>
+
+            <hr className="border-slate-800" />
+
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold text-slate-300">Additional Details</h3>
+              
+              <label className="flex items-center space-x-3 cursor-pointer p-3 bg-slate-800 border border-slate-700 rounded-xl">
+                <input 
+                  type="checkbox" 
+                  checked={isForOther}
+                  onChange={(e) => setIsForOther(e.target.checked)}
+                  className="w-5 h-5 rounded border-slate-500 text-red-500 focus:ring-red-500 bg-slate-900"
+                />
+                <span className="text-sm font-bold text-slate-300">Reporting for family/friend?</span>
+              </label>
+
+              <div className="flex space-x-2">
+                <input
+                  type="tel"
+                  value={mobileNumber}
+                  onChange={(e) => setMobileNumber(e.target.value)}
+                  placeholder="Alternate Mobile No."
+                  className="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-red-500 transition-colors"
+                />
+                <button 
+                  onClick={handleUpdateDetails}
+                  disabled={loading || (!mobileNumber.trim() && !isForOther)}
+                  className="px-4 bg-red-600 hover:bg-red-500 disabled:bg-slate-700 text-white rounded-xl font-bold text-sm transition"
+                >
+                  Save
+                </button>
               </div>
             </div>
           </div>
