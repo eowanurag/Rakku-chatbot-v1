@@ -45,7 +45,8 @@ export default function EmergencyAlertsWidget() {
 
     // Setup socket.io
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3001";
-    const socket = io(`${backendUrl}/emergency`, {
+    const socketUrl = backendUrl.replace('/api', '');
+    const socket = io(`${socketUrl}/emergency`, {
       transports: ["websocket"]
     });
 
