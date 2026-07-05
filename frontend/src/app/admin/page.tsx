@@ -12,7 +12,8 @@ import {
   SlidersHorizontal,
   CheckCircle,
   Clock,
-  AlertCircle
+  AlertCircle,
+  MapPin
 } from "lucide-react";
 import { 
   ComplaintService, 
@@ -527,7 +528,7 @@ export default function AdminPage() {
                       disabled={updatingId === selectedRecord.referenceNumber || selectedRecord.status === opt}
                       onClick={async () => {
                         await handleStatusChange(selectedRecord.referenceNumber, opt);
-                        setSelectedRecord(prev => ({ ...prev, status: opt }));
+                        setSelectedRecord((prev: any) => ({ ...prev, status: opt }));
                       }}
                       className={`py-2 px-3 rounded-lg text-xs font-bold transition-all border ${
                         selectedRecord.status === opt 
