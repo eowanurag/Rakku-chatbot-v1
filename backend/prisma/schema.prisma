@@ -477,6 +477,7 @@ enum EmergencyStatus {
   ACTIVE
   ACKNOWLEDGED
   RESOLVED
+  CANCELLED
 }
 
 enum EmergencySeverity {
@@ -511,6 +512,7 @@ enum EmergencyEventType {
   ADMIN_NOTE
   NOTIFICATION_SENT
   NOTIFICATION_FAILED
+  ALERT_CANCELLED
 }
 
 enum EmergencyType {

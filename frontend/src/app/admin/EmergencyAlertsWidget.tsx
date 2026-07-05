@@ -7,7 +7,7 @@ import { io } from "socket.io-client";
 
 export default function EmergencyAlertsWidget() {
   const [alerts, setAlerts] = useState<any[]>([]);
-  const [stats, setStats] = useState({ active: 0, acknowledged: 0, resolvedToday: 0 });
+  const [stats, setStats] = useState({ active: 0, acknowledged: 0, resolvedToday: 0, cancelledToday: 0 });
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [muted, setMuted] = useState(false);
@@ -34,7 +34,7 @@ export default function EmergencyAlertsWidget() {
           EmergencyService.getStats()
         ]);
         setAlerts(active || []);
-        setStats(dashboardStats || { active: 0, acknowledged: 0, resolvedToday: 0 });
+        setStats(dashboardStats || { active: 0, acknowledged: 0, resolvedToday: 0, cancelledToday: 0 });
       } catch (err) {
         console.error("Failed to fetch alerts", err);
       } finally {
@@ -59,6 +59,9 @@ export default function EmergencyAlertsWidget() {
       if (alert.status === 'RESOLVED') {
         setAlerts(prev => prev.filter(a => a.id !== alert.id));
         setStats(prev => ({ ...prev, resolvedToday: prev.resolvedToday + 1, acknowledged: Math.max(0, prev.acknowledged - 1) }));
+      } else if (alert.status === 'CANCELLED') {
+        setAlerts(prev => prev.map(a => a.id === alert.id ? alert : a));
+        setStats(prev => ({ ...prev, cancelledToday: prev.cancelledToday + 1, active: Math.max(0, prev.active - 1) }));
       } else {
         setAlerts(prev => prev.map(a => a.id === alert.id ? alert : a));
       }
@@ -118,7 +121,8 @@ export default function EmergencyAlertsWidget() {
           <div className="flex gap-3 text-xs font-bold">
             <span className="text-police-red-light">🔴 Active: {stats.active}</span>
             <span className="text-amber-500">🟡 Acknowledged: {stats.acknowledged}</span>
-            <span className="text-emerald-500">🟢 Resolved Today: {stats.resolvedToday}</span>
+            <span className="text-emerald-500">🟢 Resolved: {stats.resolvedToday}</span>
+            <span className="text-slate-500">⚪ Cancelled: {stats.cancelledToday}</span>
           </div>
           <div className="w-px h-6 bg-slate-700 mx-1"></div>
           <button 
@@ -143,13 +147,18 @@ export default function EmergencyAlertsWidget() {
             <div key={alert.id} className={`border-l-4 rounded-lg p-4 shadow-lg flex flex-col md:flex-row gap-4 justify-between items-start md:items-center transition-all ${
               alert.status === 'ACTIVE' 
                 ? 'bg-police-red/10 border-police-red-light' 
-                : 'bg-amber-500/10 border-amber-500'
+                : alert.status === 'CANCELLED' 
+                  ? 'bg-slate-800 border-slate-500'
+                  : 'bg-amber-500/10 border-amber-500'
             }`}>
               
               {/* Quick Summary */}
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
-                  <span className={`text-white text-[10px] font-bold px-2 py-0.5 rounded ${alert.status === 'ACTIVE' ? 'bg-police-red-light animate-pulse' : 'bg-amber-500'}`}>
+                  <span className={`text-white text-[10px] font-bold px-2 py-0.5 rounded ${
+                    alert.status === 'ACTIVE' ? 'bg-police-red-light animate-pulse' : 
+                    alert.status === 'CANCELLED' ? 'bg-slate-600 text-slate-300' : 'bg-amber-500'
+                  }`}>
                     {alert.status}
                   </span>
                   <span className="font-mono text-sm font-bold text-white tracking-wider bg-slate-800 px-2 py-0.5 rounded border border-slate-600">

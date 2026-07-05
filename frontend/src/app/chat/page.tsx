@@ -26,6 +26,7 @@ import RakkuWelcomeCard from "../../components/chat/RakkuWelcomeCard";
 import ChatMessage from "../../components/chat/ChatMessage";
 import { avatarImages } from "../../utils/avatarConfig";
 import Announcements from "../../lib/accessibility/announcements";
+import SOSDialog from "../../components/SOSDialog";
 
 const getBackendUrl = () => {
   if (typeof window === "undefined") {
@@ -65,6 +66,8 @@ function ChatContent() {
   const [sosLoading, setSosLoading] = useState(false);
   const [sosTriggered, setSosTriggered] = useState(false);
   const [activeAlertId, setActiveAlertId] = useState<string | null>(null);
+  const [initialReferenceNumber, setInitialReferenceNumber] = useState<string | null>(null);
+  const [isEmergencyDialogOpen, setIsEmergencyDialogOpen] = useState(false);
   const [waitingForManualLocation, setWaitingForManualLocation] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
 
@@ -277,6 +280,11 @@ function ChatContent() {
     EmergencyService.triggerSos(undefined, "SOS_BUTTON", { fullName: "Anonymous Citizen", mobileNumber: "Pending" })
       .then(async (res) => {
         setSosTriggered(true);
+        setInitialReferenceNumber(res.referenceNumber);
+        
+        // Open the dialog immediately
+        setIsEmergencyDialogOpen(true);
+
         if (res.isDuplicate) {
           setMessages(prev => [...prev, {
             role: "assistant",
@@ -285,39 +293,11 @@ function ChatContent() {
           return;
         }
 
-        // Store real ID from backend in future versions, for now backend should return the ID
-        // For V1 we fetch the active alert shortly after to bind the socket if needed
         EmergencyService.getActiveAlerts().then(alerts => {
           const matched = alerts.find((a: any) => a.referenceNumber === res.referenceNumber);
           if (matched) setActiveAlertId(matched.id);
         });
 
-        setMessages(prev => [...prev, {
-          role: "assistant",
-          text: `🚨 **Emergency Alert Sent Successfully**\n\nYour emergency alert has been received.\n\nReference Number: **${res.referenceNumber}**\n\nOur response team has been notified. If it is safe, keep your phone nearby and keep this page open.\n\n*(Please allow location access so we can pinpoint your coordinates)*`
-        }]);
-        updateAvatarAndSpeech("ERROR", "Emergency SOS triggered! Alerting control room...");
-
-        // After raising alert, request GPS to enrich
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(
-            async (position) => {
-              await EmergencyService.updateLocation(res.referenceNumber, position.coords.latitude, position.coords.longitude, "GPS");
-              setMessages(prev => [...prev, {
-                role: "assistant",
-                text: `✅ **Location Updated:** GPS coordinates successfully attached to alert ${res.referenceNumber}.`
-              }]);
-            },
-            (err) => {
-              console.warn("GPS failed during SOS", err);
-              setMessages(prev => [...prev, {
-                role: "assistant",
-                text: `⚠️ **Location Failed:** Could not get GPS. Please type your exact address or landmark immediately.`
-              }]);
-            },
-            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-          );
-        }
       })
       .catch((err) => {
         console.error("Failed to trigger SOS", err);
@@ -904,22 +884,14 @@ function ChatContent() {
         </footer>
       </div>
 
-      {/* Floating Unmistakable SOS Button */}
-      <button
-        onClick={handleSOS}
-        disabled={sosLoading}
-        className={`fixed bottom-24 right-4 md:right-8 z-50 p-4 rounded-full font-black text-white shadow-2xl transition-all flex items-center justify-center border-4 ${
-          sosTriggered 
-            ? "bg-red-800 border-red-900 cursor-not-allowed scale-95" 
-            : "bg-red-600 hover:bg-red-500 border-red-400 hover:scale-105 hover:shadow-red-500/50 animate-[pulse_2s_cubic-bezier(0.4,0,0.6,1)_infinite]"
-        }`}
-        style={{ width: '80px', height: '80px' }}
-      >
-        <div className="flex flex-col items-center">
-          <AlertTriangle className="w-8 h-8 mb-1" />
-          <span className="text-[10px] uppercase tracking-wider">{sosTriggered ? "SENT" : "SOS"}</span>
-        </div>
-      </button>
+      {isEmergencyDialogOpen && (
+        <SOSDialog 
+          activeAlertId={activeAlertId} 
+          initialReferenceNumber={initialReferenceNumber}
+          backendUrl={BACKEND_URL}
+          onClose={() => setIsEmergencyDialogOpen(false)} 
+        />
+      )}
 
       {/* Floating Welcome Overlay Greeting Card */}
       {showWelcomeCard && (

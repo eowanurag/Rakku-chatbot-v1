@@ -43,6 +43,11 @@ export class EmergencyController {
     return this.emergencyService.updateEmergencyType(id, body.emergencyType);
   }
 
+  @Patch(':id/cancel')
+  async cancelAlert(@Param('id') id: string) {
+    return this.emergencyService.cancelAlert(id);
+  }
+
   @Get('active')
   async getActiveAlerts() {
     return this.repo.getActiveAlerts();

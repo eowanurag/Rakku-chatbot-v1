@@ -23,7 +23,10 @@ export class TelegramNotifier implements EmergencyNotifier {
       return false;
     }
 
-    const message = `🚨 <b>NEW SOS ALERT</b>
+    const isCancelled = alert.status === 'CANCELLED';
+    const headerTitle = isCancelled ? '⚪ SOS CANCELLED' : '🚨 NEW SOS ALERT';
+
+    const message = `${isCancelled ? '⚪' : '🚨'} <b>${headerTitle}</b>
 Reference: ${alert.referenceNumber}
 Status: ${alert.status}
 Severity: ${alert.severity}
@@ -68,8 +71,11 @@ export class EmailNotifier implements EmergencyNotifier {
     try {
       const resend = new Resend(process.env.RESEND_API_KEY);
 
+      const isCancelled = alert.status === 'CANCELLED';
+      const headerTitle = isCancelled ? '⚪ SOS CANCELLED' : '🚨 NEW SOS ALERT';
+
       const message = `
-      <h2>🚨 NEW SOS ALERT</h2>
+      <h2>${isCancelled ? '⚪' : '🚨'} ${headerTitle}</h2>
       <p><b>Reference:</b> ${alert.referenceNumber}</p>
       <p><b>Status:</b> ${alert.status}</p>
       <p><b>Severity:</b> ${alert.severity}</p>
@@ -86,7 +92,7 @@ export class EmailNotifier implements EmergencyNotifier {
       const response = await resend.emails.send({
         from: 'Rakku Emergency <onboarding@resend.dev>',
         to: process.env.ALERT_EMAIL || 'rakkuadmin@gmail.com',
-        subject: `🚨 URGENT: SOS Alert ${alert.referenceNumber}`,
+        subject: `${isCancelled ? '⚪' : '🚨'} URGENT: SOS Alert ${alert.referenceNumber}`,
         html: message,
       });
 
