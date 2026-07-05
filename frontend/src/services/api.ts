@@ -355,9 +355,9 @@ export const EmergencyService = {
     return res;
   },
 
-  async getActiveAlerts() {
+  async getRecentAlerts(limit: number = 50) {
     try {
-      return await fetchApi("/emergency/active");
+      return await fetchApi(`/emergency/recent?limit=${limit}`);
     } catch {
       return [];
     }

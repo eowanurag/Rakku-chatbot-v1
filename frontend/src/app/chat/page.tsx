@@ -299,7 +299,7 @@ function ChatContent() {
           }]);
         }
 
-        EmergencyService.getActiveAlerts().then(alerts => {
+        EmergencyService.getRecentAlerts().then(alerts => {
           const matched = alerts.find((a: any) => a.referenceNumber === res.referenceNumber);
           if (matched) setActiveAlertId(matched.id);
         });

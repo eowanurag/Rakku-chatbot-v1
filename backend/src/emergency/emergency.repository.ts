@@ -44,13 +44,9 @@ export class EmergencyRepository {
     });
   }
   
-  async getActiveAlerts() {
+  async getRecentAlerts(limit: number = 50) {
     return this.prisma.emergencyAlert.findMany({
-      where: {
-        status: {
-          in: ['ACTIVE', 'ACKNOWLEDGED']
-        }
-      },
+      take: limit,
       orderBy: { updatedAt: 'desc' },
       include: { events: true }
     });

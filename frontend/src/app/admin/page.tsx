@@ -393,7 +393,18 @@ export default function AdminPage() {
 
         {/* RIGHT EMERGENCY FEED */}
         <aside className="w-[400px] bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 flex flex-col shrink-0 z-20 shadow-lg relative">
-          <EmergencyAlertsWidget />
+          <EmergencyAlertsWidget onSelectAlert={(alert) => {
+            setSelectedRecord({
+              ...alert,
+              isEmergency: true,
+              referenceNumber: alert.id,
+              name: alert.citizenSnapshot?.fullName,
+              mobile: alert.citizenSnapshot?.mobileNumber,
+              address: alert.locationText,
+              type: alert.emergencyType || 'SOS Alert'
+            });
+            setDrawerTab("timeline");
+          }} />
         </aside>
 
         {/* SLIDING DRAWER OVERLAY */}
@@ -411,8 +422,8 @@ export default function AdminPage() {
                 <div className="flex justify-between items-start mb-4">
                   <div>
                     <div className="flex items-center space-x-3 mb-2">
-                      <span className="text-[10px] font-bold text-police-gold uppercase tracking-widest bg-police-gold/10 px-2 py-1 rounded">
-                        {activeTab.slice(0, -1)} Record
+                      <span className={`text-[10px] font-bold ${selectedRecord.isEmergency ? 'text-police-red bg-police-red/10' : 'text-police-gold bg-police-gold/10'} uppercase tracking-widest px-2 py-1 rounded`}>
+                        {selectedRecord.isEmergency ? 'Emergency SOS' : `${activeTab.slice(0, -1)} Record`}
                       </span>
                       <span className={`inline-flex items-center space-x-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${getStatusBadgeClass(selectedRecord.status)}`}>
                         <span className={`w-1 h-1 rounded-full ${getDotClass(selectedRecord.status)}`}></span>
@@ -502,18 +513,48 @@ export default function AdminPage() {
                   <div className="space-y-6 animate-in fade-in">
                     <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-3">Audit Log</h4>
                     <div className="relative pl-4 border-l-2 border-slate-200 dark:border-slate-800 space-y-6 ml-2">
-                      <div className="relative">
-                        <div className="absolute w-3 h-3 bg-[#10B981] rounded-full -left-[23px] top-1 border-2 border-white dark:border-slate-950"></div>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 font-mono mb-1">{new Date(selectedRecord.createdAt).toLocaleString()}</p>
-                        <p className="text-sm font-bold text-slate-900 dark:text-white">Record Submitted</p>
-                        <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">Automated ingestion via Rakku Chatbot.</p>
-                      </div>
                       
-                      <div className="relative">
-                        <div className="absolute w-3 h-3 bg-[#3B82F6] rounded-full -left-[23px] top-1 animate-pulse border-2 border-white dark:border-slate-950"></div>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 font-mono mb-1">Current Status</p>
-                        <p className="text-sm font-bold text-slate-900 dark:text-white">Moved to {selectedRecord.status}</p>
-                      </div>
+                      {selectedRecord.events && selectedRecord.events.length > 0 ? (
+                        [...selectedRecord.events].sort((a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).map((event: any, idx: number) => {
+                          const diff = Math.floor((Date.now() - new Date(event.timestamp).getTime()) / 1000);
+                          let relTime = 'Just now';
+                          if (diff >= 60) {
+                            const min = Math.floor(diff / 60);
+                            if (min < 60) relTime = `${min} min ago`;
+                            else relTime = `${Math.floor(min / 60)} hr ago`;
+                          }
+                          
+                          return (
+                            <div key={idx} className="relative">
+                              <div className={`absolute w-3 h-3 rounded-full -left-[23px] top-1 border-2 border-white dark:border-slate-950 ${idx === 0 ? 'bg-police-red animate-pulse' : 'bg-slate-400'}`}></div>
+                              <p className="text-xs text-slate-500 dark:text-slate-400 font-mono mb-1">
+                                <span className="font-bold text-slate-600 dark:text-slate-300">{relTime}</span> • {new Date(event.timestamp).toLocaleString('en-US', { hour: '2-digit', minute:'2-digit', hour12: false })}
+                              </p>
+                              <p className="text-sm font-bold text-slate-900 dark:text-white">{event.eventType}</p>
+                              {event.description && <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">{event.description}</p>}
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <>
+                          <div className="relative">
+                            <div className="absolute w-3 h-3 bg-[#10B981] rounded-full -left-[23px] top-1 border-2 border-white dark:border-slate-950"></div>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 font-mono mb-1">
+                              <span className="font-bold text-slate-600 dark:text-slate-300">New</span> • {new Date(selectedRecord.createdAt).toLocaleString('en-US', { hour: '2-digit', minute:'2-digit', hour12: false })}
+                            </p>
+                            <p className="text-sm font-bold text-slate-900 dark:text-white">Record Submitted</p>
+                            <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">Automated ingestion via Rakku Chatbot.</p>
+                          </div>
+                          
+                          <div className="relative">
+                            <div className="absolute w-3 h-3 bg-[#3B82F6] rounded-full -left-[23px] top-1 animate-pulse border-2 border-white dark:border-slate-950"></div>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 font-mono mb-1">
+                              <span className="font-bold text-slate-600 dark:text-slate-300">Now</span> • Current
+                            </p>
+                            <p className="text-sm font-bold text-slate-900 dark:text-white">Moved to {selectedRecord.status}</p>
+                          </div>
+                        </>
+                      )}
                     </div>
                   </div>
                 )}

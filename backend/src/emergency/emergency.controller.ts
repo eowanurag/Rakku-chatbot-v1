@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, Param, Patch, Req, Ip } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, Patch, Req, Ip, Query } from '@nestjs/common';
 import { EmergencyService } from './emergency.service';
 import { EmergencyRepository } from './emergency.repository';
 import { Request } from 'express';
@@ -56,9 +56,10 @@ export class EmergencyController {
     return this.emergencyService.cancelAlert(id);
   }
 
-  @Get('active')
-  async getActiveAlerts() {
-    return this.repo.getActiveAlerts();
+  @Get('recent')
+  async getRecentAlerts(@Query('limit') limit?: string) {
+    const l = limit ? parseInt(limit, 10) : 50;
+    return this.repo.getRecentAlerts(l);
   }
 
   @Get('stats')
