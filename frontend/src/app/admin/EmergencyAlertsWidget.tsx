@@ -113,7 +113,7 @@ export default function EmergencyAlertsWidget() {
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* Widget Header */}
-      <div className="p-5 border-b border-slate-800 bg-[#1E293B] shrink-0 sticky top-0 z-10">
+      <div className="p-5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 shrink-0 sticky top-0 z-10">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-sm font-bold text-police-red-light uppercase tracking-widest flex items-center gap-2">
             <span className="relative flex h-3 w-3">
@@ -124,7 +124,7 @@ export default function EmergencyAlertsWidget() {
           </h2>
           <button 
             onClick={() => setMuted(!muted)}
-            className={`p-1.5 rounded-full transition-colors ${muted ? 'bg-slate-800 text-slate-500' : 'bg-police-red/20 text-police-red-light hover:bg-police-red/30'}`}
+            className={`p-1.5 rounded-full transition-colors ${muted ? 'bg-slate-200 dark:bg-slate-800 text-slate-500' : 'bg-police-red/20 text-police-red hover:bg-police-red/30'}`}
             title={muted ? "Unmute Siren" : "Mute Siren"}
           >
             {muted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
@@ -132,14 +132,14 @@ export default function EmergencyAlertsWidget() {
         </div>
         
         <div className="flex gap-4 text-[10px] font-bold uppercase tracking-wider">
-          <span className="text-police-red-light">🚨 Active: {stats.active}</span>
-          <span className="text-amber-500">🟡 Ack: {stats.acknowledged}</span>
-          <span className="text-emerald-500">🟢 Res: {stats.resolvedToday}</span>
+          <span className="text-police-red">🚨 Active: {stats.active}</span>
+          <span className="text-amber-600 dark:text-amber-500">🟡 Ack: {stats.acknowledged}</span>
+          <span className="text-emerald-600 dark:text-emerald-500">🟢 Res: {stats.resolvedToday}</span>
         </div>
       </div>
 
       {/* Feed List */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-[#0F172A]">
+      <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-100 dark:bg-slate-950">
         {alerts.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-full text-emerald-500 space-y-3 opacity-70 mt-10">
           <CheckCircle className="w-10 h-10" />
@@ -159,7 +159,7 @@ export default function EmergencyAlertsWidget() {
             return (
               <div 
                 key={alert.id} 
-                className="bg-[#1E293B] border border-slate-800 rounded-lg p-4 shadow-lg animate-in slide-in-from-top-4 fade-in duration-300 relative overflow-hidden group hover:-translate-y-0.5 hover:shadow-xl transition-all cursor-pointer"
+                className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-4 shadow-sm animate-in slide-in-from-top-4 fade-in duration-300 relative overflow-hidden group hover:-translate-y-0.5 hover:shadow-md transition-all cursor-pointer"
                 onClick={() => setExpandedId(expandedId === alert.id ? null : alert.id)}
               >
                 {/* Left accent border */}
@@ -175,9 +175,9 @@ export default function EmergencyAlertsWidget() {
                     <span className={`w-2 h-2 rounded-full ${
                       isSOS ? 'bg-police-red animate-pulse' : 
                       isAck ? 'bg-amber-500' : 
-                      isRes ? 'bg-emerald-500' : 'bg-slate-500'
+                      isRes ? 'bg-emerald-500' : 'bg-slate-400 dark:bg-slate-500'
                     }`}></span>
-                    <span className="text-xs font-bold text-white tracking-widest">
+                    <span className="text-xs font-bold text-slate-900 dark:text-white tracking-widest">
                       {isSOS ? '🚨 SOS' : alert.status}
                     </span>
                   </div>
@@ -189,18 +189,18 @@ export default function EmergencyAlertsWidget() {
 
                 {/* Details */}
                 <div className="pl-2 space-y-1 mt-3">
-                  <p className="text-sm text-slate-300 font-mono flex justify-between items-center">
+                  <p className="text-sm text-slate-700 dark:text-slate-300 font-mono flex justify-between items-center">
                     <span className="truncate pr-2">{alert.locationText || 'Location Pending'}</span>
-                    <span className="text-xs font-bold text-slate-500 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">{alert.referenceNumber}</span>
+                    <span className="text-xs font-bold text-slate-600 dark:text-slate-500 bg-slate-50 dark:bg-slate-900 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-800">{alert.referenceNumber}</span>
                   </p>
-                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">
                     {alert.emergencyType || 'Unclassified'} • {alert.citizenSnapshot?.mobileNumber || 'No Mobile'}
                   </p>
                 </div>
 
                 {/* Quick Actions (Inline) */}
                 {(isSOS || isAck) && expandedId === alert.id && (
-                  <div className="mt-4 pt-3 border-t border-slate-800 pl-2 flex gap-2 animate-in fade-in">
+                  <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 pl-2 flex gap-2 animate-in fade-in">
                     {isSOS && (
                       <button
                         onClick={(e) => { e.stopPropagation(); handleAcknowledge(alert.id); }}
@@ -221,7 +221,7 @@ export default function EmergencyAlertsWidget() {
                 )}
                 
                 {expandedId === alert.id && !isSOS && !isAck && (
-                   <div className="mt-4 pt-3 border-t border-slate-800 pl-2 text-[10px] text-slate-500 font-mono">
+                   <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 pl-2 text-[10px] text-slate-500 font-mono">
                      Citizen: {alert.citizenSnapshot?.fullName || 'Unknown'} <br/>
                      Resolved/Cancelled status.
                    </div>

@@ -174,15 +174,15 @@ export default function AdminPage() {
   };
 
   return (
-    <div className="h-screen w-full flex flex-col bg-[#0F172A] overflow-hidden text-slate-300 font-sans">
+    <div className="h-screen w-full flex flex-col bg-slate-50 dark:bg-slate-950 overflow-hidden text-slate-600 dark:text-slate-300 font-sans">
       {/* HEADER */}
-      <header className="h-16 bg-[#1E293B] border-b border-slate-800 flex items-center justify-between px-6 shrink-0 z-30 shadow-md">
+      <header className="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-6 shrink-0 z-30 shadow-md">
         <div className="flex items-center space-x-4">
           <div className="w-10 h-10 bg-police-navy rounded-full flex items-center justify-center border-2 border-police-gold">
             <span className="text-xl">🛡️</span>
           </div>
           <div>
-            <h1 className="text-lg font-bold text-white tracking-wide">Rakku Police Command Center</h1>
+            <h1 className="text-lg font-bold text-slate-900 dark:text-white tracking-wide">Rakku Police Command Center</h1>
             <div className="flex items-center space-x-2">
               <p className="text-[10px] text-police-gold uppercase tracking-widest font-semibold">Uttar Pradesh Digital Police Platform</p>
               <span className="text-[8px] bg-[#3B82F6]/20 text-[#3B82F6] border border-[#3B82F6]/30 px-1.5 py-0.5 rounded font-bold uppercase tracking-widest">
@@ -194,20 +194,20 @@ export default function AdminPage() {
 
         <div className="flex items-center space-x-8">
           <div className="text-center">
-            <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">{currentTime ? formatDate(currentTime) : ''}</p>
-            <p className="text-lg font-mono font-bold text-white">{currentTime ? currentTime.toLocaleTimeString('en-US', { hour12: false }) : ''}</p>
+            <p className="text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-widest font-bold">{currentTime ? formatDate(currentTime) : ''}</p>
+            <p className="text-lg font-mono font-bold text-slate-900 dark:text-white">{currentTime ? currentTime.toLocaleTimeString('en-US', { hour12: false }) : ''}</p>
           </div>
           
-          <div className="w-px h-10 bg-slate-700"></div>
+          <div className="w-px h-10 bg-slate-200 dark:bg-slate-700"></div>
 
           <div className="flex items-center space-x-6">
             {/* Notification Bell */}
             <div className="relative cursor-pointer group">
               <span className="text-xl">🔔</span>
               <div className="absolute -top-1 -right-1 w-4 h-4 bg-[#EF4444] rounded-full flex items-center justify-center text-[10px] text-white font-bold animate-bounce">3</div>
-              <div className="absolute top-8 -left-20 w-64 bg-[#1E293B] border border-slate-700 shadow-xl rounded-lg p-3 hidden group-hover:block z-50">
-                <p className="text-xs font-bold text-slate-300 mb-2 border-b border-slate-700 pb-1">Notifications (3)</p>
-                <ul className="space-y-2 text-xs text-slate-400">
+              <div className="absolute top-8 -left-20 w-64 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-xl rounded-lg p-3 hidden group-hover:block z-50">
+                <p className="text-xs font-bold text-slate-800 dark:text-slate-300 mb-2 border-b border-slate-200 dark:border-slate-700 pb-1">Notifications (3)</p>
+                <ul className="space-y-2 text-xs text-slate-600 dark:text-slate-400">
                   <li><span className="text-[#EF4444]">●</span> New SOS from Lucknow</li>
                   <li><span className="text-[#10B981]">●</span> Complaint CMP-1024 Approved</li>
                   <li><span className="text-[#3B82F6]">●</span> Verification VFC-202 Completed</li>
@@ -216,10 +216,10 @@ export default function AdminPage() {
             </div>
 
             <div className="flex flex-col items-end">
-              <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">Platform Status</p>
+              <p className="text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-widest font-bold">Platform Status</p>
               <div className="flex items-center space-x-2 mt-0.5">
                 <span className="w-2.5 h-2.5 rounded-full bg-[#10B981] animate-pulse"></span>
-                <span className="text-sm font-bold text-[#10B981]">Operational</span>
+                <span className="text-sm font-bold text-emerald-700 dark:text-[#10B981]">Operational</span>
               </div>
             </div>
           </div>
@@ -228,26 +228,26 @@ export default function AdminPage() {
 
       <div className="flex-1 flex overflow-hidden relative">
         {/* LEFT SIDEBAR */}
-        <aside className="w-64 bg-[#1E293B]/60 border-r border-slate-800 flex flex-col shrink-0">
+        <aside className="w-64 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-r border-slate-200 dark:border-slate-800 flex flex-col shrink-0">
           <div className="p-4 space-y-1">
-            <div className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4 px-3 mt-2">Modules</div>
+            <div className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-4 px-3 mt-2">Modules</div>
             
-            <button onClick={() => {setActiveTab("complaints"); setSearchQuery("");}} className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-semibold transition-all ${activeTab === 'complaints' ? 'bg-[#3B82F6]/10 text-[#3B82F6]' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}>
+            <button onClick={() => {setActiveTab("complaints"); setSearchQuery("");}} className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-semibold transition-all ${activeTab === 'complaints' ? 'bg-blue-600 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
               <FileText className="w-5 h-5" /> <span>Complaints</span>
             </button>
-            <button onClick={() => {setActiveTab("verifications"); setSearchQuery("");}} className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-semibold transition-all ${activeTab === 'verifications' ? 'bg-[#3B82F6]/10 text-[#3B82F6]' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}>
+            <button onClick={() => {setActiveTab("verifications"); setSearchQuery("");}} className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-semibold transition-all ${activeTab === 'verifications' ? 'bg-blue-600 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
               <ShieldCheck className="w-5 h-5" /> <span>Verification</span>
             </button>
-            <button onClick={() => {setActiveTab("certificates"); setSearchQuery("");}} className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-semibold transition-all ${activeTab === 'certificates' ? 'bg-[#3B82F6]/10 text-[#3B82F6]' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}>
+            <button onClick={() => {setActiveTab("certificates"); setSearchQuery("");}} className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-semibold transition-all ${activeTab === 'certificates' ? 'bg-blue-600 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
               <UserCheck className="w-5 h-5" /> <span>Certificates</span>
             </button>
-            <button onClick={() => {setActiveTab("events"); setSearchQuery("");}} className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-semibold transition-all ${activeTab === 'events' ? 'bg-[#3B82F6]/10 text-[#3B82F6]' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}>
+            <button onClick={() => {setActiveTab("events"); setSearchQuery("");}} className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-semibold transition-all ${activeTab === 'events' ? 'bg-blue-600 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
               <CalendarDays className="w-5 h-5" /> <span>Events</span>
             </button>
           </div>
           
           <div className="mt-auto p-4">
-            <button onClick={loadData} disabled={loading} className="w-full flex items-center justify-center space-x-2 bg-slate-800 hover:bg-slate-700 text-slate-300 py-3 rounded-lg text-sm font-bold transition-all border border-slate-700">
+            <button onClick={loadData} disabled={loading} className="w-full flex items-center justify-center space-x-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 py-3 rounded-lg text-sm font-bold transition-all border border-slate-200 dark:border-slate-700">
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
               <span>Sync Records</span>
             </button>
@@ -255,47 +255,47 @@ export default function AdminPage() {
         </aside>
 
         {/* MAIN WORKSPACE */}
-        <main className="flex-1 flex flex-col overflow-y-auto p-6 bg-[#0F172A] relative">
+        <main className="flex-1 flex flex-col overflow-y-auto p-6 bg-slate-50 dark:bg-slate-950 relative">
           
           {/* Analytics Cards */}
           <div className="grid grid-cols-4 gap-4 mb-6">
-            <div className="bg-[#1E293B] border border-slate-700/50 rounded-xl p-5 shadow-lg relative overflow-hidden group">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-32 h-32 bg-[#3B82F6]/5 rounded-full -translate-y-1/2 translate-x-1/2 group-hover:bg-[#3B82F6]/10 transition-colors"></div>
-              <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">Total Complaints</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mb-1">Total Complaints</p>
               <div className="flex items-end justify-between">
-                <p className="text-3xl font-extrabold text-white">{complaints.length}</p>
-                <div className="flex items-center space-x-1 text-[#10B981] text-xs font-bold bg-[#10B981]/10 px-2 py-1 rounded">
+                <p className="text-3xl font-extrabold text-slate-900 dark:text-white">{complaints.length}</p>
+                <div className="flex items-center space-x-1 text-emerald-600 dark:text-emerald-400 text-xs font-bold bg-emerald-100 dark:bg-emerald-500/10 px-2 py-1 rounded">
                   <span>↑</span><span>12%</span>
                 </div>
               </div>
             </div>
             
-            <div className="bg-[#1E293B] border border-slate-700/50 rounded-xl p-5 shadow-lg relative overflow-hidden group">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full -translate-y-1/2 translate-x-1/2 group-hover:bg-amber-500/10 transition-colors"></div>
-              <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">Pending Verifications</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mb-1">Pending Verifications</p>
               <div className="flex items-end justify-between">
-                <p className="text-3xl font-extrabold text-white">{verifications.filter(v => v.status === 'Submitted' || v.status === 'Pending Verification').length}</p>
-                <div className="flex items-center space-x-1 text-amber-500 text-xs font-bold bg-amber-500/10 px-2 py-1 rounded">
+                <p className="text-3xl font-extrabold text-slate-900 dark:text-white">{verifications.filter(v => v.status === 'Submitted' || v.status === 'Pending Verification').length}</p>
+                <div className="flex items-center space-x-1 text-red-600 dark:text-red-400 text-xs font-bold bg-red-100 dark:bg-red-500/10 px-2 py-1 rounded">
                   <span>↓</span><span>4%</span>
                 </div>
               </div>
             </div>
 
-            <div className="bg-[#1E293B] border border-slate-700/50 rounded-xl p-5 shadow-lg relative overflow-hidden group">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-32 h-32 bg-police-gold/5 rounded-full -translate-y-1/2 translate-x-1/2 group-hover:bg-police-gold/10 transition-colors"></div>
-              <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">Certificates Issued</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mb-1">Certificates Issued</p>
               <div className="flex items-end justify-between">
-                <p className="text-3xl font-extrabold text-white">{certificates.filter(c => c.status === 'Approved').length}</p>
-                <div className="w-16 h-6 border-b-2 border-police-gold/50 rounded-[50%]"></div>
+                <p className="text-3xl font-extrabold text-slate-900 dark:text-white">{certificates.filter(c => c.status === 'Approved').length}</p>
+                <div className="w-16 h-6 border-b-2 border-police-gold/30 rounded-[50%]"></div>
               </div>
             </div>
 
-            <div className="bg-[#1E293B] border border-slate-700/50 rounded-xl p-5 shadow-lg relative overflow-hidden group">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full -translate-y-1/2 translate-x-1/2 group-hover:bg-emerald-500/10 transition-colors"></div>
-              <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">Upcoming Events</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mb-1">Upcoming Events</p>
               <div className="flex items-end justify-between">
-                <p className="text-3xl font-extrabold text-white">{events.filter(e => e.status === 'Approved').length}</p>
-                <div className="w-16 h-6 border-b-2 border-emerald-500/50 rounded-[50%]"></div>
+                <p className="text-3xl font-extrabold text-slate-900 dark:text-white">{events.filter(e => e.status === 'Approved').length}</p>
+                <div className="w-16 h-6 border-b-2 border-emerald-500/30 rounded-[50%]"></div>
               </div>
             </div>
           </div>
@@ -310,16 +310,16 @@ export default function AdminPage() {
                 placeholder="Search reference, citizen, or location... (Press /)"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-11 pr-4 py-2.5 bg-[#1E293B] border border-slate-700/80 focus:border-[#3B82F6] rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none transition-colors shadow-inner"
+                className="w-full pl-11 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 focus:border-[#3B82F6] rounded-xl text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none transition-colors shadow-sm"
               />
             </div>
-            <h2 className="text-lg font-bold text-white uppercase tracking-widest">{activeTab} List</h2>
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white uppercase tracking-widest">{activeTab} List</h2>
           </div>
 
           {/* Minimal Table */}
-          <div className="bg-[#1E293B] border border-slate-800 rounded-xl overflow-hidden shadow-2xl flex-1 flex flex-col">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm flex-1 flex flex-col">
             {loading ? (
-              <div className="flex-1 flex flex-col items-center justify-center py-20 text-slate-400 space-y-3">
+              <div className="flex-1 flex flex-col items-center justify-center py-20 text-slate-500 dark:text-slate-400 space-y-3">
                 <Loader2 className="w-8 h-8 animate-spin text-[#3B82F6]" />
                 <p className="text-sm font-semibold">Syncing Data...</p>
               </div>
@@ -333,7 +333,7 @@ export default function AdminPage() {
               <div className="overflow-x-auto w-full flex-1">
                 <table className="w-full text-left border-collapse text-sm">
                   <thead>
-                    <tr className="border-b border-slate-700 bg-slate-900/50 text-slate-400 uppercase tracking-widest text-[10px] font-bold">
+                    <tr className="border-b border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 uppercase tracking-widest text-[10px] font-bold">
                       <th className="p-4 w-40">Ref ID</th>
                       <th className="p-4">Citizen</th>
                       <th className="p-4">Type / Classification</th>
@@ -341,12 +341,14 @@ export default function AdminPage() {
                       <th className="p-4 w-40">Status</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800/80">
-                    {currentData.map((item) => (
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
+                    {currentData.map((item) => {
+                      const isSelected = selectedRecord?.referenceNumber === item.referenceNumber;
+                      return (
                       <tr 
                         key={item.id} 
                         onClick={() => setSelectedRecord(item)}
-                        className="hover:bg-slate-800/50 transition-colors cursor-pointer group relative"
+                        className={`transition-colors cursor-pointer group relative ${isSelected ? 'bg-blue-50 dark:bg-blue-950' : 'bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/50'}`}
                       >
                         {updatingId === item.referenceNumber && (
                           <div className="absolute inset-0 bg-[#3B82F6]/10 animate-pulse pointer-events-none"></div>
@@ -355,13 +357,13 @@ export default function AdminPage() {
                           {item.referenceNumber}
                         </td>
                         <td className="p-4 relative z-10">
-                          <p className="font-bold text-slate-200 group-hover:text-[#3B82F6] transition-colors">{item.citizen?.fullName || item.name || 'Anonymous'}</p>
+                          <p className="font-bold text-slate-900 dark:text-slate-200 group-hover:text-[#3B82F6] transition-colors">{item.citizen?.fullName || item.name || 'Anonymous'}</p>
                           <p className="text-[10px] font-mono text-slate-500 mt-0.5">{item.citizen?.mobileNumber || item.mobile || 'No Mobile'}</p>
                         </td>
                         <td className="p-4 relative z-10">
-                          <p className="text-slate-300 font-medium text-xs">{item.complaintType || item.verificationType || item.purpose || item.eventType}</p>
+                          <p className="text-slate-700 dark:text-slate-300 font-medium text-xs">{item.complaintType || item.verificationType || item.purpose || item.eventType}</p>
                         </td>
-                        <td className="p-4 text-slate-400 text-xs font-mono relative z-10">
+                        <td className="p-4 text-slate-500 dark:text-slate-400 text-xs font-mono relative z-10">
                           {new Date(item.createdAt).toLocaleDateString()}
                         </td>
                         <td className="p-4 relative z-10">
@@ -371,7 +373,7 @@ export default function AdminPage() {
                           </div>
                         </td>
                       </tr>
-                    ))}
+                    )})}
                   </tbody>
                 </table>
               </div>
@@ -379,7 +381,7 @@ export default function AdminPage() {
           </div>
           
           {/* Footer Sync Status */}
-          <div className="mt-4 flex items-center justify-between text-[10px] font-bold text-slate-500 uppercase tracking-widest border-t border-slate-800 pt-3">
+          <div className="mt-4 flex items-center justify-between text-[10px] font-bold text-slate-500 uppercase tracking-widest border-t border-slate-200 dark:border-slate-800 pt-3">
              <div className="flex space-x-6">
                 <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 bg-[#10B981] rounded-full"></span> Backend Online</span>
                 <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 bg-[#10B981] rounded-full"></span> AI Connected</span>
@@ -390,7 +392,7 @@ export default function AdminPage() {
         </main>
 
         {/* RIGHT EMERGENCY FEED */}
-        <aside className="w-[400px] bg-[#1E293B] border-l border-slate-800 flex flex-col shrink-0 z-20 shadow-2xl relative">
+        <aside className="w-[400px] bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 flex flex-col shrink-0 z-20 shadow-lg relative">
           <EmergencyAlertsWidget />
         </aside>
 
@@ -398,14 +400,14 @@ export default function AdminPage() {
         {selectedRecord && (
           <div className="absolute inset-0 z-50 flex justify-end overflow-hidden">
             <div 
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" 
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" 
               onClick={() => setSelectedRecord(null)}
             ></div>
             
-            <div className="w-[500px] bg-[#0F172A] h-full shadow-2xl border-l border-slate-700 relative flex flex-col animate-in slide-in-from-right-8 duration-300">
+            <div className="w-[500px] bg-white dark:bg-slate-900 h-full shadow-2xl border-l border-slate-200 dark:border-slate-700 relative flex flex-col animate-in slide-in-from-right-8 duration-300">
               
               {/* Drawer Header */}
-              <div className="p-6 border-b border-slate-800 bg-[#1E293B]">
+              <div className="p-6 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900">
                 <div className="flex justify-between items-start mb-4">
                   <div>
                     <div className="flex items-center space-x-3 mb-2">
@@ -417,31 +419,31 @@ export default function AdminPage() {
                         <span>{selectedRecord.status}</span>
                       </span>
                     </div>
-                    <h2 className="text-xl font-extrabold text-white mt-1 font-mono">{selectedRecord.referenceNumber}</h2>
-                    <p className="text-xs text-slate-400 font-mono mt-1">Submitted on {new Date(selectedRecord.createdAt).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}</p>
+                    <h2 className="text-xl font-extrabold text-slate-900 dark:text-white mt-1 font-mono">{selectedRecord.referenceNumber}</h2>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-mono mt-1">Submitted on {new Date(selectedRecord.createdAt).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}</p>
                   </div>
-                  <button onClick={() => setSelectedRecord(null)} className="p-2 hover:bg-slate-700 text-slate-400 hover:text-white rounded-full transition-colors group relative">
+                  <button onClick={() => setSelectedRecord(null)} className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-full transition-colors group relative">
                     ✕
-                    <span className="absolute -bottom-6 right-0 bg-black/80 text-[10px] text-white px-2 py-1 rounded hidden group-hover:block whitespace-nowrap">Esc</span>
+                    <span className="absolute -bottom-6 right-0 bg-slate-800 text-[10px] text-white px-2 py-1 rounded hidden group-hover:block whitespace-nowrap shadow-md">Esc</span>
                   </button>
                 </div>
                 
-                <div className="flex space-x-6 border-b border-slate-700 mt-6">
+                <div className="flex space-x-6 border-b border-slate-200 dark:border-slate-700 mt-6">
                   <button 
                     onClick={() => setDrawerTab("details")}
-                    className={`pb-3 text-xs font-bold uppercase tracking-wider transition-colors ${drawerTab === 'details' ? 'text-[#3B82F6] border-b-2 border-[#3B82F6]' : 'text-slate-500 hover:text-slate-300'}`}
+                    className={`pb-3 text-xs font-bold uppercase tracking-wider transition-colors ${drawerTab === 'details' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-300'}`}
                   >
                     Details
                   </button>
                   <button 
                     onClick={() => setDrawerTab("location")}
-                    className={`pb-3 text-xs font-bold uppercase tracking-wider transition-colors ${drawerTab === 'location' ? 'text-[#3B82F6] border-b-2 border-[#3B82F6]' : 'text-slate-500 hover:text-slate-300'}`}
+                    className={`pb-3 text-xs font-bold uppercase tracking-wider transition-colors ${drawerTab === 'location' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-300'}`}
                   >
                     Location
                   </button>
                   <button 
                     onClick={() => setDrawerTab("timeline")}
-                    className={`pb-3 text-xs font-bold uppercase tracking-wider transition-colors ${drawerTab === 'timeline' ? 'text-[#3B82F6] border-b-2 border-[#3B82F6]' : 'text-slate-500 hover:text-slate-300'}`}
+                    className={`pb-3 text-xs font-bold uppercase tracking-wider transition-colors ${drawerTab === 'timeline' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-300'}`}
                   >
                     Timeline
                   </button>
@@ -449,28 +451,28 @@ export default function AdminPage() {
               </div>
 
               {/* Drawer Content */}
-              <div className="flex-1 overflow-y-auto p-6 space-y-8 bg-[#0F172A]">
+              <div className="flex-1 overflow-y-auto p-6 space-y-8 bg-slate-50 dark:bg-slate-950">
                 
                 {drawerTab === 'details' && (
                   <div className="space-y-6 animate-in fade-in">
                     <div>
-                      <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Citizen Profile</h4>
-                      <div className="bg-[#1E293B] border border-slate-800 rounded-xl p-4 flex flex-col space-y-2">
-                        <p className="text-sm text-slate-300"><strong className="text-white">Name:</strong> {selectedRecord.citizen?.fullName || selectedRecord.name || 'Anonymous'}</p>
-                        <p className="text-sm text-slate-300"><strong className="text-white">Mobile:</strong> {selectedRecord.citizen?.mobileNumber || selectedRecord.mobile || 'N/A'}</p>
-                        <p className="text-sm text-slate-300"><strong className="text-white">Address:</strong> {selectedRecord.citizen?.addressLine1 || 'N/A'}</p>
+                      <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-3">Citizen Profile</h4>
+                      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 flex flex-col space-y-2 shadow-sm">
+                        <p className="text-sm text-slate-700 dark:text-slate-300"><strong className="text-slate-900 dark:text-white">Name:</strong> {selectedRecord.citizen?.fullName || selectedRecord.name || 'Anonymous'}</p>
+                        <p className="text-sm text-slate-700 dark:text-slate-300"><strong className="text-slate-900 dark:text-white">Mobile:</strong> {selectedRecord.citizen?.mobileNumber || selectedRecord.mobile || 'N/A'}</p>
+                        <p className="text-sm text-slate-700 dark:text-slate-300"><strong className="text-slate-900 dark:text-white">Address:</strong> {selectedRecord.citizen?.addressLine1 || 'N/A'}</p>
                       </div>
                     </div>
 
                     <div>
-                      <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Submission Data</h4>
-                      <div className="bg-[#1E293B] border border-slate-800 rounded-xl p-4 space-y-3">
-                        <p className="text-sm text-slate-300"><strong className="text-white">Type:</strong> {selectedRecord.complaintType || selectedRecord.verificationType || selectedRecord.eventType || selectedRecord.purpose}</p>
+                      <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-3">Submission Data</h4>
+                      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 space-y-3 shadow-sm">
+                        <p className="text-sm text-slate-700 dark:text-slate-300"><strong className="text-slate-900 dark:text-white">Type:</strong> {selectedRecord.complaintType || selectedRecord.verificationType || selectedRecord.eventType || selectedRecord.purpose}</p>
                         
                         {(selectedRecord.incidentDetails || selectedRecord.propertyDetails) && (
                           <div>
-                            <strong className="text-white text-sm">Description:</strong>
-                            <p className="text-sm text-slate-400 mt-1 bg-slate-900 p-3 rounded-lg border border-slate-800 whitespace-pre-wrap">
+                            <strong className="text-slate-900 dark:text-white text-sm">Description:</strong>
+                            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 bg-slate-50 dark:bg-slate-950 p-3 rounded-lg border border-slate-200 dark:border-slate-800 whitespace-pre-wrap">
                               {selectedRecord.incidentDetails || selectedRecord.propertyDetails}
                             </p>
                           </div>
@@ -482,15 +484,15 @@ export default function AdminPage() {
 
                 {drawerTab === 'location' && (
                   <div className="space-y-6 animate-in fade-in">
-                    <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Location Data</h4>
-                    <div className="bg-[#1E293B] border border-slate-800 rounded-xl p-4">
-                      <p className="text-sm text-slate-300 mb-4 font-mono">{selectedRecord.address || selectedRecord.location || selectedRecord.district || 'Location details not provided.'}</p>
+                    <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-3">Location Data</h4>
+                    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
+                      <p className="text-sm text-slate-700 dark:text-slate-300 mb-4 font-mono">{selectedRecord.address || selectedRecord.location || selectedRecord.district || 'Location details not provided.'}</p>
                       
                       {/* Map Placeholder */}
-                      <div className="w-full h-48 bg-slate-900 border border-slate-700 rounded-lg flex flex-col items-center justify-center relative overflow-hidden group">
-                        <div className="absolute inset-0 bg-slate-800/20 z-0 pattern-grid opacity-20"></div>
+                      <div className="w-full h-48 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg flex flex-col items-center justify-center relative overflow-hidden group">
+                        <div className="absolute inset-0 bg-slate-200/50 dark:bg-slate-800/20 z-0 pattern-grid opacity-20"></div>
                         <MapPin className="w-8 h-8 text-police-gold mb-2 z-10" />
-                        <p className="text-xs font-bold text-slate-500 uppercase tracking-widest z-10">[ Future Live Map ]</p>
+                        <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest z-10">[ Future Live Map ]</p>
                       </div>
                     </div>
                   </div>
@@ -498,19 +500,19 @@ export default function AdminPage() {
 
                 {drawerTab === 'timeline' && (
                   <div className="space-y-6 animate-in fade-in">
-                    <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Audit Log</h4>
-                    <div className="relative pl-4 border-l-2 border-slate-800 space-y-6 ml-2">
+                    <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-3">Audit Log</h4>
+                    <div className="relative pl-4 border-l-2 border-slate-200 dark:border-slate-800 space-y-6 ml-2">
                       <div className="relative">
-                        <div className="absolute w-3 h-3 bg-[#10B981] rounded-full -left-[23px] top-1"></div>
-                        <p className="text-xs text-slate-500 font-mono mb-1">{new Date(selectedRecord.createdAt).toLocaleString()}</p>
-                        <p className="text-sm font-bold text-white">Record Submitted</p>
-                        <p className="text-xs text-slate-400 mt-0.5">Automated ingestion via Rakku Chatbot.</p>
+                        <div className="absolute w-3 h-3 bg-[#10B981] rounded-full -left-[23px] top-1 border-2 border-white dark:border-slate-950"></div>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 font-mono mb-1">{new Date(selectedRecord.createdAt).toLocaleString()}</p>
+                        <p className="text-sm font-bold text-slate-900 dark:text-white">Record Submitted</p>
+                        <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">Automated ingestion via Rakku Chatbot.</p>
                       </div>
                       
                       <div className="relative">
-                        <div className="absolute w-3 h-3 bg-[#3B82F6] rounded-full -left-[23px] top-1 animate-pulse"></div>
-                        <p className="text-xs text-slate-500 font-mono mb-1">Current Status</p>
-                        <p className="text-sm font-bold text-white">Moved to {selectedRecord.status}</p>
+                        <div className="absolute w-3 h-3 bg-[#3B82F6] rounded-full -left-[23px] top-1 animate-pulse border-2 border-white dark:border-slate-950"></div>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 font-mono mb-1">Current Status</p>
+                        <p className="text-sm font-bold text-slate-900 dark:text-white">Moved to {selectedRecord.status}</p>
                       </div>
                     </div>
                   </div>
@@ -519,8 +521,8 @@ export default function AdminPage() {
               </div>
 
               {/* Drawer Footer / Actions */}
-              <div className="p-6 border-t border-slate-800 bg-[#1E293B]">
-                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Status Management</h4>
+              <div className="p-6 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900">
+                <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-3">Status Management</h4>
                 <div className="grid grid-cols-2 gap-3">
                   {statusOptions.map(opt => (
                     <button
@@ -532,8 +534,8 @@ export default function AdminPage() {
                       }}
                       className={`py-2 px-3 rounded-lg text-xs font-bold transition-all border ${
                         selectedRecord.status === opt 
-                          ? 'bg-[#3B82F6]/20 text-[#3B82F6] border-[#3B82F6]/50 cursor-default' 
-                          : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700 hover:text-white'
+                          ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-900/50 cursor-default' 
+                          : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white'
                       }`}
                     >
                       {updatingId === selectedRecord.referenceNumber && selectedRecord.status !== opt ? 'Updating...' : `Mark ${opt}`}
