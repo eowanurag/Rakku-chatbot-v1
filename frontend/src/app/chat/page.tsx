@@ -509,6 +509,17 @@ function ChatContent() {
       Announcements.announce("Manual entry selected.", "polite");
     }
 
+    // --- SOS Intercept ---
+    const isSosQuery = 
+      cleanLower.includes('emergency help') || 
+      cleanLower.includes('sos') || 
+      cleanLower.includes('आपातकालीन सहायता');
+      
+    if (isSosQuery) {
+      handleSOS();
+      return;
+    }
+
 
     // --- Police Station trigger keywords ---
     const isPoliceStationQuery =
