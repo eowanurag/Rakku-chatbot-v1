@@ -28,7 +28,7 @@ import AdminIntelligenceView from "./AdminIntelligenceView";
 
 type TabType = "complaints" | "verifications" | "certificates" | "events" | "intelligence";
 
-export default function AdminPage() {
+export default function Up112Page() {
   const [activeTab, setActiveTab] = useState<TabType>("complaints");
   const [loading, setLoading] = useState(false);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
@@ -51,17 +51,12 @@ export default function AdminPage() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [cData, vData, certData, eData] = await Promise.all([
-        ComplaintService.getAll(),
-        VerificationService.getAll(),
-        CertificateService.getAll(),
-        EventService.getAll()
-      ]);
-      
-      setComplaints(cData || []);
-      setVerifications(vData || []);
-      setCertificates(certData || []);
-      setEvents(eData || []);
+      const stored = JSON.parse(localStorage.getItem('forwarded_records') || '[]');
+      const up112Records = stored.filter((r: any) => r.forwardedTarget === '112');
+      setComplaints(up112Records);
+      setVerifications([]);
+      setCertificates([]);
+      setEvents([]);
     } catch (e) {
       console.error("Error fetching admin data:", e);
     } finally {
@@ -193,7 +188,7 @@ export default function AdminPage() {
             <span className="text-xl">🛡️</span>
           </div>
           <div>
-            <h1 className="text-lg font-bold text-slate-900 dark:text-white tracking-wide">Rakku Police Command Center</h1>
+            <h1 className="text-lg font-bold text-slate-900 dark:text-white tracking-wide">UP-112 Emergency Dispatch Center</h1>
             <div className="flex items-center space-x-2">
               <p className="text-[10px] text-police-gold uppercase tracking-widest font-semibold">Uttar Pradesh Digital Police Platform</p>
               <span className="text-[8px] bg-[#3B82F6]/20 text-[#3B82F6] border border-[#3B82F6]/30 px-1.5 py-0.5 rounded font-bold uppercase tracking-widest">
@@ -420,21 +415,9 @@ export default function AdminPage() {
         </main>
 
         {/* RIGHT EMERGENCY FEED */}
-        <aside className="w-[400px] bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 flex flex-col shrink-0 z-20 shadow-lg relative">
-          <EmergencyAlertsWidget 
-            onNewNotification={handleNewNotification}
-            onSelectAlert={(alert) => {
-            setSelectedRecord({
-              ...alert,
-              isEmergency: true,
-              referenceNumber: alert.id,
-              name: alert.citizenSnapshot?.fullName,
-              mobile: alert.citizenSnapshot?.mobileNumber,
-              address: alert.locationText,
-              type: alert.emergencyType || 'SOS Alert'
-            });
-            setDrawerTab("timeline");
-          }} />
+        <aside className="w-[400px] bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 flex flex-col shrink-0 z-20 shadow-lg relative p-6">
+          <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Live Dispatch Feed</h2>
+          <p className="text-sm text-slate-500">Awaiting incoming dispatches...</p>
         </aside>
 
         {/* SLIDING DRAWER OVERLAY */}
