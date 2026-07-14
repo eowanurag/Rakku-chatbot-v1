@@ -2,6 +2,13 @@
   {
     "districtCode": "LUCKNOW",
     "cityCode": "LUCKNOW",
+    "localityCode": "PHOENIX_MALL",
+    "stationCode": "UP-LKO-PHX-001",
+    "priority": 1
+  },
+  {
+    "districtCode": "LUCKNOW",
+    "cityCode": "LUCKNOW",
     "localityCode": "HAZRATGANJ",
     "stationCode": "UP-LKO-HAZ-001",
     "priority": 1

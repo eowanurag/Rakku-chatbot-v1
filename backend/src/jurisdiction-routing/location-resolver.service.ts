@@ -192,6 +192,9 @@ export class LocationResolverService {
     } else if (rawNormalized.includes('indirapuram')) {
       resolvedCity = 'GHAZIABAD';
       resolvedLocality = 'INDIRAPURAM';
+    } else if (rawNormalized.includes('phoenix mall') || rawNormalized.includes('phoenix palassio') || rawNormalized.includes('phoenix')) {
+      resolvedCity = 'LUCKNOW';
+      resolvedLocality = 'PHOENIX_MALL';
     } else if (rawNormalized.includes('hazratganj')) {
       resolvedCity = 'LUCKNOW';
       resolvedLocality = 'HAZRATGANJ';

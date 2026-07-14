@@ -1,5 +1,16 @@
 [
   {
+    "stationCode": "UP-LKO-PHX-001",
+    "name": "Sushant Golf City Police Station (Near Phoenix Palassio)",
+    "districtCode": "LUCKNOW",
+    "cityCode": "LUCKNOW",
+    "localityCode": "PHOENIX_MALL",
+    "latitude": 26.8045,
+    "longitude": 81.0118,
+    "phone": "0522-2200202",
+    "isActive": true
+  },
+  {
     "stationCode": "UP-LKO-HAZ-001",
     "name": "Hazratganj Police Station",
     "districtCode": "LUCKNOW",
