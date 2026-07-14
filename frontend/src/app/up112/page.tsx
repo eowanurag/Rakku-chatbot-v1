@@ -23,8 +23,8 @@ import {
   EmergencyService
 } from "../../services/api";
 import ThemeToggle from "../../components/ui/ThemeToggle";
-import EmergencyAlertsWidget from "./EmergencyAlertsWidget";
-import AdminIntelligenceView from "./AdminIntelligenceView";
+import EmergencyAlertsWidget from "../admin/EmergencyAlertsWidget";
+import AdminIntelligenceView from "../admin/AdminIntelligenceView";
 
 type TabType = "complaints" | "verifications" | "certificates" | "events" | "intelligence";
 
